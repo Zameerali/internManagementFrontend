@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { getInternWithProfile, addIntern } from "../services/internService";
+import { setInterns, addIntern as addInternRedux } from "../store/internsSlice";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../store";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -11,6 +14,8 @@ import { Container } from "@mui/material";
 
 export default function InternListPage() {
   const [addOpen, setAddOpen] = useState(false);
+  const dispatch = useDispatch();
+  const interns = useSelector((state: RootState) => state.interns.interns);
 
   const schema = yup.object().shape({
     name: yup.string().required("Name is required"),
@@ -51,12 +56,11 @@ export default function InternListPage() {
       const fullIntern = await getInternWithProfile(created.id);
       setAddOpen(false);
       reset();
-      setInterns((prev) => [fullIntern, ...prev]);
+      dispatch(addInternRedux(fullIntern));
     } catch (e) {
       alert("Failed to add intern");
     }
   };
-  const [interns, setInterns] = useState<Intern[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -72,7 +76,7 @@ export default function InternListPage() {
           }
         })
       );
-      setInterns(withProfiles);
+      dispatch(setInterns(withProfiles));
     })();
   }, []);
 

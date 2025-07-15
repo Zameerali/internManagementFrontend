@@ -24,6 +24,12 @@ import {
   Paper,
 } from "@mui/material";
 import type { Project } from "../types/project";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setProjects,
+  addProject as addProjectRedux,
+} from "../store/projectsSlice";
+import type { RootState } from "../store";
 import type { Intern } from "../types/intern";
 
 export default function ProjectsPage() {
@@ -39,12 +45,13 @@ export default function ProjectsPage() {
       setAddOpen(false);
       setNewProjectName("");
       const updatedProjects = await getAllProjects();
-      setProjects(updatedProjects);
+      dispatch(setProjects(updatedProjects));
     } catch (e) {
       alert("Failed to add project");
     }
   };
-  const [projects, setProjects] = React.useState<Project[]>([]);
+  const dispatch = useDispatch();
+  const projects = useSelector((state: RootState) => state.projects.projects);
   const [interns, setInterns] = React.useState<Intern[]>([]);
   const [selectedInterns, setSelectedInterns] = React.useState<{
     [key: number]: number[];
@@ -77,7 +84,7 @@ export default function ProjectsPage() {
         getAllProjects(),
         getAllInterns(),
       ]);
-      setProjects(projectsRes);
+      dispatch(setProjects(projectsRes));
       setInterns(internsRes);
       const assigned: { [key: number]: Intern[] } = {};
       await Promise.all(
@@ -120,7 +127,7 @@ export default function ProjectsPage() {
       });
     } catch {}
     const updatedProjects = await getAllProjects();
-    setProjects(updatedProjects);
+    dispatch(setProjects(updatedProjects));
     if (historyOpen && historyProjectName === project.name) {
       const data = await getProjectHistory(projectId);
       const withNames = data.map((item: any) => {
@@ -157,7 +164,7 @@ export default function ProjectsPage() {
       getAllProjects(),
       getAllInterns(),
     ]);
-    setProjects(projectsRes);
+    dispatch(setProjects(projectsRes));
     setInterns(internsRes);
     const assigned: { [key: number]: Intern[] } = {};
     await Promise.all(
