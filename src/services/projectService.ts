@@ -1,6 +1,13 @@
+
+
 import API from "./api";
 import type { Project } from "../types/project";
-
+export const logProjectHistory = async (
+  projectId: number,
+  payload: { action: string; status?: string }
+) => {
+  return API.post(`/projects/${projectId}/history`, payload);
+};
 export const getAllProjects = async (): Promise<Project[]> => {
   const res = await API.get("/interns/project");
   return res.data;
@@ -41,4 +48,8 @@ export const unassignProjectFromInterns = async (
 export const getProjectHistory = async (projectId: number) => {
   const res = await API.get(`/projects/${projectId}/history`);
   return res.data;
+};
+
+export const addProject = async (name: string) => {
+  return API.post("/interns/project", { name, status: "in_progress" });
 };

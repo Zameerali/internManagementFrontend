@@ -6,6 +6,8 @@ import {
   getAssignedInterns,
   updateProjectStatus,
   getProjectHistory,
+  addProject,
+  logProjectHistory,
 } from "../services/projectService";
 import { getAllInterns } from "../services/internService";
 import {
@@ -25,23 +27,37 @@ import type { Project } from "../types/project";
 import type { Intern } from "../types/intern";
 
 export default function ProjectsPage() {
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [newProjectName, setNewProjectName] = React.useState("");
+  const handleAddProject = async () => {
+    if (!newProjectName.trim()) {
+      alert("Project name is required");
+      return;
+    }
+    try {
+      await addProject(newProjectName);
+      setAddOpen(false);
+      setNewProjectName("");
+      const updatedProjects = await getAllProjects();
+      setProjects(updatedProjects);
+    } catch (e) {
+      alert("Failed to add project");
+    }
+  };
   const [projects, setProjects] = React.useState<Project[]>([]);
   const [interns, setInterns] = React.useState<Intern[]>([]);
   const [selectedInterns, setSelectedInterns] = React.useState<{
     [key: number]: number[];
   }>({});
-  // Remove local status state, use backend status
   const [assignedInterns, setAssignedInterns] = React.useState<{
     [key: number]: Intern[];
   }>({});
-  // Move history modal state and handler inside the component
   const [historyOpen, setHistoryOpen] = React.useState(false);
   const [historyData, setHistoryData] = React.useState<any[]>([]);
   const [historyProjectName, setHistoryProjectName] =
     React.useState<string>("");
   const handleViewHistory = async (project: Project) => {
     const data = await getProjectHistory(project.id);
-    // Attach intern name for each history item if intern_id exists
     const withNames = data.map((item: any) => {
       let internName = "";
       if (item.intern_id) {
@@ -63,7 +79,6 @@ export default function ProjectsPage() {
       ]);
       setProjects(projectsRes);
       setInterns(internsRes);
-
       const assigned: { [key: number]: Intern[] } = {};
       await Promise.all(
         projectsRes.map(async (project: any) => {
@@ -73,7 +88,7 @@ export default function ProjectsPage() {
               internIds.includes(intern.id)
             );
             assigned[project.id] = mappedInterns;
-          } catch (err) {
+          } catch {
             assigned[project.id] = [];
           }
         })
@@ -98,19 +113,14 @@ export default function ProjectsPage() {
       return;
     }
     await updateProjectStatus(projectId, value);
-    // Log status change in project history (if backend does not already do this)
     try {
-      await fetch(`/api/projects/${projectId}/history`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "status_changed", status: value }),
+      await logProjectHistory(projectId, {
+        action: "status_changed",
+        status: value,
       });
-    } catch (e) {
-      // ignore if not supported
-    }
+    } catch {}
     const updatedProjects = await getAllProjects();
     setProjects(updatedProjects);
-    // Refresh history if modal is open for this project
     if (historyOpen && historyProjectName === project.name) {
       const data = await getProjectHistory(projectId);
       const withNames = data.map((item: any) => {
@@ -136,7 +146,6 @@ export default function ProjectsPage() {
       alert("Cannot unassign interns from a completed project.");
       return;
     }
-    // Only allow unassigning selected interns
     const internIds = selectedInterns[projectId] || [];
     if (!internIds.length) {
       alert("Select interns to unassign.");
@@ -144,7 +153,6 @@ export default function ProjectsPage() {
     }
     await unassignProjectFromInterns(projectId, internIds);
     alert("Interns unassigned successfully!");
-    // Refresh assignments
     const [projectsRes, internsRes] = await Promise.all([
       getAllProjects(),
       getAllInterns(),
@@ -169,19 +177,54 @@ export default function ProjectsPage() {
     setSelectedInterns((prev) => ({ ...prev, [projectId]: [] }));
   };
 
-  // Compute globally assigned interns (assigned to any project)
-  const globallyAssignedInternIds = Object.values(assignedInterns)
-    .flat()
-    .map((intern) => intern.id);
-
   return (
     <Container
       sx={{ padding: "2rem", margin: "0 auto", maxWidth: "900px", mt: 8 }}
     >
+      <h1
+        className="text-2xl font-bold"
+        style={{ textAlign: "center", marginBottom: "16px" }}
+      >
+        Projects
+      </h1>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+        <Button variant="contained" onClick={() => setAddOpen(true)}>
+          Add Project
+        </Button>
+      </Box>
+      <Modal open={addOpen} onClose={() => setAddOpen(false)}>
+        <Paper
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 350,
+            p: 3,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Add New Project
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <input
+              type="text"
+              placeholder="Project Name"
+              value={newProjectName}
+              onChange={(e) => setNewProjectName(e.target.value)}
+              style={{ padding: "8px", fontSize: "16px" }}
+            />
+            <Button variant="contained" onClick={handleAddProject}>
+              Add
+            </Button>
+            <Button variant="text" onClick={() => setAddOpen(false)}>
+              Cancel
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
       {projects.map((project) => {
         const assigned = assignedInterns[project.id] || [];
-        // Interns assigned to any in_progress project are unavailable
-        // Interns assigned only to completed projects are available
         const assignedToInProgress = new Set<number>();
         projects.forEach((proj) => {
           if (proj.status !== "completed") {
@@ -234,16 +277,14 @@ export default function ProjectsPage() {
                 ) : (
                   <Box>
                     {historyData.map((item, idx) => {
-                      // Format date
                       const dateStr = item.timestamp
                         ? new Date(item.timestamp).toLocaleString()
                         : "";
-                      // Show intern name if present, else status change
                       let detail = "";
                       if (item.action === "assigned") {
-                        detail = `Intern ${item.internName} assigned`;
+                        detail = `Intern: ${item.internName} assigned`;
                       } else if (item.action === "unassigned") {
-                        detail = `Intern ${item.internName} unassigned`;
+                        detail = `Intern: ${item.internName} unassigned`;
                       } else if (
                         item.action === "status_changed" &&
                         item.status
