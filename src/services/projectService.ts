@@ -1,5 +1,3 @@
-
-
 import API from "./api";
 import type { Project } from "../types/project";
 export const logProjectHistory = async (
