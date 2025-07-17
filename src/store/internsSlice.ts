@@ -1,6 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
-import type { Intern } from '../types/intern';
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { Intern } from "../types/intern";
 
 interface InternsState {
   interns: Intern[];
@@ -11,7 +11,7 @@ const initialState: InternsState = {
 };
 
 const internsSlice = createSlice({
-  name: 'interns',
+  name: "interns",
   initialState,
   reducers: {
     setInterns(state: InternsState, action: PayloadAction<Intern[]>) {
