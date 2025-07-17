@@ -1,21 +1,16 @@
 import React from "react";
 import { Container, TextField, Button } from "@mui/material";
-import { useEffect, useState } from "react";
-import type { Task } from "../types/task";
-import { createTask } from "../services/taskService";
+import { useCreateTaskMutation } from "../features/tasks/tasksApi";
+
 interface AddTaskProps {
   internId: number;
+  projectId?: number;
 }
 
-const AddTask: React.FC<AddTaskProps> = ({ internId }) => {
-  const [task, setTask] = useState<Task>({
-    id: 0,
-    title: "",
-    description: "",
-    status: "pending",
-    intern_id: internId,
-    task_date: new Date().toISOString().split("T")[0],
-  });
+const AddTask: React.FC<AddTaskProps> = ({ internId, projectId }) => {
+  const [createTask] = useCreateTaskMutation();
+  const [success, setSuccess] = React.useState(false);
+
   return (
     <Container
       sx={{
@@ -28,37 +23,53 @@ const AddTask: React.FC<AddTaskProps> = ({ internId }) => {
     >
       <form
         onSubmit={async (e) => {
-        //   e.preventDefault();
-          await createTask(task, internId);
-          setTask({
-            id: 0,
-            title: "",
-            description: "",
+          e.preventDefault();
+          const formData = new FormData(e.currentTarget as HTMLFormElement);
+          const title = formData.get("title") as string;
+          const description = formData.get("description") as string;
+          const task_date = new Date().toISOString().split("T")[0];
+          if (!internId || !projectId) {
+            alert("Intern or Project ID missing!");
+            return;
+          }
+          const payload: any = {
+            title,
+            description,
             status: "pending",
             intern_id: internId,
-            task_date: new Date().toISOString().split("T")[0],
-          });
+            project_id: projectId,
+            task_date,
+          };
+          await createTask({ task: payload, internId });
+          if (e.currentTarget instanceof HTMLFormElement) {
+            e.currentTarget.reset();
+          }
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 2000);
         }}
       >
         <TextField
           sx={{ marginBottom: "1rem" }}
           label="Title"
-          value={task.title}
-          onChange={(e) => setTask({ ...task, title: e.target.value })}
+          name="title"
           fullWidth
           required
         />
         <TextField
           sx={{ marginBottom: "1rem" }}
           label="Description"
-          value={task.description}
-          onChange={(e) => setTask({ ...task, description: e.target.value })}
+          name="description"
           fullWidth
           required
         />
         <Button type="submit" variant="contained" color="primary">
           Add Task
         </Button>
+        {success && (
+          <div style={{ color: "#388e3c", marginTop: "1rem", fontWeight: 500 }}>
+            Task added successfully!
+          </div>
+        )}
       </form>
     </Container>
   );

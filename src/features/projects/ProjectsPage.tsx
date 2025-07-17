@@ -227,23 +227,25 @@ export default function ProjectsPage() {
       projectId,
       internIds: selectedInterns[projectId],
     }).unwrap();
+    // Reset selection after assignment
+    setSelectedInterns((prev) => ({ ...prev, [projectId]: [] }));
     alert("Project assigned successfully!");
   };
 
-  const handleUnAssign = async (projectId: number) => {
-    const project = projects.find((p) => p.id === projectId);
-    if (!project || project.status === "completed") {
-      alert("Cannot unassign interns from a completed project.");
-      return;
-    }
-    const internIds = selectedInterns[projectId] || [];
-    if (!internIds.length) {
-      alert("Select interns to unassign.");
-      return;
-    }
-    await unassignProjectFromInterns({ projectId, internIds }).unwrap();
-    alert("Project unassigned successfully!");
-  };
+  // const handleUnAssign = async (projectId: number) => {
+  //   const project = projects.find((p) => p.id === projectId);
+  //   if (!project || project.status === "completed") {
+  //     alert("Cannot unassign interns from a completed project.");
+  //     return;
+  //   }
+  //   const internIds = selectedInterns[projectId] || [];
+  //   if (!internIds.length) {
+  //     alert("Select interns to unassign.");
+  //     return;
+  //   }
+  //   await unassignProjectFromInterns({ projectId, internIds }).unwrap();
+  //   alert("Project unassigned successfully!");
+  // };
 
   // const handleUnassign = async (projectId: number) => {
   //   const project = projects.find((p) => p.id === projectId);
@@ -357,7 +359,7 @@ export default function ProjectsPage() {
             selectedInterns={selectedInterns}
             handleInternsChange={handleInternsChange}
             handleAssign={handleAssign}
-            handleUnAssign={handleUnAssign}
+            // Unassign logic removed; only assignment is allowed from ProjectsPage
             currentStatus={currentStatus}
             historyOpen={historyOpen}
             selectedProjectId={selectedProjectId}

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { Task } from "./type";
+import type { Task,NewTask } from "./type";
 
 export const tasksApi = createApi({
   reducerPath: "tasksApi",
@@ -12,16 +12,16 @@ export const tasksApi = createApi({
     }),
 
     createTask: builder.mutation<
-      Task,
+      Task, 
       {
-        task: Task;
+        task: NewTask;
         internId: number;
       }
     >({
       query: ({ task, internId }) => ({
         url: `/interns/${internId}/tasks`,
         method: "POST",
-        body: { task, internId },
+        body: { ...task },
       }),
       invalidatesTags: ["tasks"],
     }),
@@ -38,6 +38,10 @@ export const tasksApi = createApi({
       query: () => "/tasks/full",
       providesTags: ["tasks"],
     }),
+    getTasksByProject: builder.query<Task[], { projectId: number }>({
+      query: ({ projectId }) => `/projects/${projectId}/tasks`,
+      providesTags: ["tasks"],
+    }),
   }),
 });
 
@@ -46,4 +50,5 @@ export const {
   useCreateTaskMutation,
   useUpdateTaskStatusMutation,
   useGetAllTasksWithInternsQuery,
+  useGetTasksByProjectQuery,
 } = tasksApi;

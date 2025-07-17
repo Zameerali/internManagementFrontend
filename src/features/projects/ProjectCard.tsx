@@ -9,6 +9,7 @@ import {
   Typography,
   Modal,
   Paper,
+  Chip,
 } from "@mui/material";
 import type { Project, ProjectHistoryItem } from "./type";
 import type { Intern } from "../interns/type";
@@ -21,7 +22,7 @@ export function ProjectCard({
   selectedInterns,
   handleInternsChange,
   handleAssign,
-  handleUnAssign,
+  // handleUnAssign, // Unassign logic removed
   currentStatus,
   historyOpen,
   selectedProjectId,
@@ -37,7 +38,7 @@ export function ProjectCard({
   selectedInterns: { [key: number]: number[] };
   handleInternsChange: (projectId: number, value: number[]) => void;
   handleAssign: (projectId: number) => void;
-  handleUnAssign: (projectId: number) => void;
+  // handleUnAssign: (projectId: number) => void; // Unassign logic removed
   currentStatus: string;
   historyOpen: boolean;
   selectedProjectId: number | typeof skipToken;
@@ -47,8 +48,8 @@ export function ProjectCard({
   historyData: ProjectHistoryItem[];
   handleStatusChange: (projectId: number, value: string) => void;
 }) {
-    const { data: assigned = [] } = useGetAssignedInternsQuery(project.id);
-    const assignedInternIds = Array.isArray(assigned) ? assigned : [];
+  const { data: assigned = [] } = useGetAssignedInternsQuery(project.id);
+  const assignedInternIds = Array.isArray(assigned) ? assigned : [];
   return (
     <Box
       key={project.id}
@@ -139,42 +140,7 @@ export function ProjectCard({
         </Paper>
       </Modal>
 
-      {/* Assigned Interns */}
-      <div>
-        <strong>Already Assigned Interns:</strong>
-        {assignedInternIds.length === 0 ? (
-          <span> None</span>
-        ) : (
-          <FormControl fullWidth sx={{ mt: 1, mb: 1 }}>
-            <InputLabel id={`assigned-interns-label-${project.id}`}>
-              Select to Unassign
-            </InputLabel>
-            <Select
-              labelId={`assigned-interns-label-${project.id}`}
-              multiple
-              value={selectedInterns[project.id] || []}
-              onChange={(e) =>
-                handleInternsChange(project.id, e.target.value as number[])
-              }
-              label="Select to Unassign"
-              disabled={currentStatus === "completed"}
-            >
-              {assignedInternIds.map((internId) => {
-                const intern = allInterns.find((i) => i.id === internId);
-                return intern ? (
-                  <MenuItem key={intern.id} value={intern.id}>
-                    {intern.name}
-                  </MenuItem>
-                ) : (
-                  <MenuItem key={internId} value={internId}>
-                    {`ID ${internId}`}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-        )}
-      </div>
+      {/* Assigned Interns display removed; unassign logic is handled in Tasks page */}
 
       {/* Available Interns */}
       <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
@@ -190,6 +156,25 @@ export function ProjectCard({
           }
           label="Select Interns"
           disabled={currentStatus === "completed"}
+          renderValue={(selected) => (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+              {Array.isArray(selected) && selected.length > 0 ? (
+                selected.map((id) => {
+                  const intern = interns.find((i) => i.id === id);
+                  return (
+                    <Chip
+                      key={id}
+                      label={intern ? intern.name : `ID ${id}`}
+                      size="small"
+                      sx={{ fontWeight: 500 }}
+                    />
+                  );
+                })
+              ) : (
+                <span style={{ color: "#888" }}>Select Interns</span>
+              )}
+            </Box>
+          )}
         >
           {interns.map((intern) => (
             <MenuItem key={intern.id} value={intern.id}>
@@ -224,14 +209,7 @@ export function ProjectCard({
       >
         Assign
       </Button>
-      <Button
-        variant="outlined"
-        color="error"
-        onClick={() => handleUnAssign(project.id)}
-        disabled={currentStatus === "completed"}
-      >
-        Unassign
-      </Button>
+      {/* Unassign button removed; unassignment is handled in Tasks page */}
     </Box>
   );
 }
