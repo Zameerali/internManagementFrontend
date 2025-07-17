@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardLayout from "./components/Dashboard";
-import InternListPage from "./pages/InternsListPage";
-import TasksPage from "./pages/TaskPage";
-import ProjectsPage from "./pages/ProjectsPage";
-import TasksListPage from "./pages/TasksListPage";
+import InternListPage from "./features/interns/InternsListPage";
+import TasksPage from "./features/tasks/TaskPage";
+import ProjectsPage from "./features/projects/ProjectsPage";
+import TasksListPage from "./features/tasks/TasksListPage";
 function App() {
   return (
     <BrowserRouter>
