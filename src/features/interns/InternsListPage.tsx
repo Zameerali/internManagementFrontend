@@ -1,45 +1,41 @@
-import { useEffect, useState } from "react";
-// import {
-//   getInternWithProfile,
-//   addIntern,
-// } from "../../services/internService.ts";
-// import {
-//   setInterns,
-//   addIntern as addInternRedux,
-// } from "../../store/internsSlice.ts";
-import {
-  useGetAllInternsQuery,
-  useAddInternMutation,
-  useGetInternWithProfileQuery,
-} from "./internsApi.ts";
-// import { useDispatch, useSelector } from "react-redux";
-// import type { RootState } from "../../store/index.ts";
+import { useState } from "react";
+import { useGetAllInternsQuery, useAddInternMutation } from "./internsApi.ts";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Button, Modal, Paper, Typography } from "@mui/material";
-// import { getAllInterns } from "../../services/internService.ts";
-// import type { Intern } from "../../types/intern.ts";
+import {
+  Container,
+  CircularProgress,
+  Box,
+  TextField,
+  Typography,
+  Modal,
+  Paper,
+  Button,
+  Stack,
+  Pagination,
+  Grid,
+} from "@mui/material";
 import InternCard from "../../components/InternCard.tsx";
-import { Container } from "@mui/material";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
   joined_date: yup.string().required("Joined date is required"),
-  bio: yup.string().required(),
+  bio: yup.string().required("Bio is required"),
   linkedin: yup
     .string()
-    .url("must be a valid URL")
+    .url("Invalid URL")
     .required("LinkedIn URL is required"),
 });
+
 export default function InternListPage() {
   const [addOpen, setAddOpen] = useState(false);
-  // const dispatch = useDispatch();
-  // const interns = useSelector((state: RootState) => state.interns.interns);
-
   const { data: interns = [], isLoading } = useGetAllInternsQuery();
   const [addIntern] = useAddInternMutation();
+  const [page, setPage] = useState(1);
+  const internsPerPage = 9;
 
   const {
     register,
@@ -73,65 +69,28 @@ export default function InternListPage() {
     }
   };
 
-  // const handleAddIntern = async (data: {
-  //   name: string;
-  //   email: string;
-  //   joined_date: string;
-  //   bio?: string;
-  //   linkedin?: string;
-  // }) => {
-  //   try {
-  //     const created = await addIntern(data);
-  //     const fullIntern = await getInternWithProfile(created.id);
-  //     setAddOpen(false);
-  //     reset();
-  //     dispatch(addInternRedux(fullIntern));
-  //   } catch (e) {
-  //     alert("Failed to add intern");
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const data = await getAllInterns();
-  //     const withProfiles = await Promise.all(
-  //       data.map(async (intern) => {
-  //         try {
-  //           const res = await fetch(`/api/interns/${intern.id}/profile`);
-  //           const profile = await res.json();
-  //           return { ...intern, profile: profile.profile };
-  //         } catch {
-  //           return intern;
-  //         }
-  //       })
-  //     );
-  //     dispatch(setInterns(withProfiles));
-  //   })();
-  // }, []);
+  const totalPages = Math.ceil(interns.length / internsPerPage);
+  const paginatedInterns = interns.slice(
+    (page - 1) * internsPerPage,
+    page * internsPerPage
+  );
 
   return (
-    <Container
-      sx={{
-        alignItems: "center",
-        padding: "2rem",
-        maxWidth: "800px",
-        margin: "0 auto",
-      }}
-    >
-      <h1 className="text-2xl font-bold mb-4" style={{ textAlign: "center" }}>
+    <Container sx={{ py: 5, maxWidth: "600px" }}>
+      <Typography variant="h4" align="center" fontWeight="bold" gutterBottom>
         Interns
-      </h1>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "16px",
-        }}
-      >
-        <Button variant="contained" onClick={() => setAddOpen(true)}>
+      </Typography>
+
+      <Box textAlign="center" mb={4}>
+        <Button
+          variant="contained"
+          startIcon={<GroupAddIcon />}
+          onClick={() => setAddOpen(true)}
+        >
           Add Intern
         </Button>
-      </div>
+      </Box>
+
       <Modal open={addOpen} onClose={() => setAddOpen(false)}>
         <Paper
           sx={{
@@ -139,77 +98,134 @@ export default function InternListPage() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 350,
-            p: 3,
+            width: { xs: 300, sm: 400 },
+            p: 4,
+            borderRadius: 2,
           }}
         >
           <Typography variant="h6" gutterBottom>
             Add New Intern
           </Typography>
-          <form
-            onSubmit={handleSubmit(handleAddIntern)}
-            style={{ display: "flex", flexDirection: "column", gap: 12 }}
-          >
-            <input
-              type="text"
-              placeholder="Name"
-              {...register("name")}
-              style={{ padding: "8px", fontSize: "16px" }}
-            />
-            {errors.name && (
-              <span style={{ color: "red" }}>{errors.name.message}</span>
-            )}
-            <input
-              type="email"
-              placeholder="Email"
-              {...register("email")}
-              style={{ padding: "8px", fontSize: "16px" }}
-            />
-            {errors.email && (
-              <span style={{ color: "red" }}>{errors.email.message}</span>
-            )}
-            <input
-              type="date"
-              placeholder="Joined Date"
-              {...register("joined_date")}
-              style={{ padding: "8px", fontSize: "16px" }}
-            />
-            {errors.joined_date && (
-              <span style={{ color: "red" }}>{errors.joined_date.message}</span>
-            )}
-            <input
-              type="text"
-              placeholder="Bio"
-              {...register("bio")}
-              style={{ padding: "8px", fontSize: "16px" }}
-            />
-            <input
-              type="text"
-              placeholder="LinkedIn URL"
-              {...register("linkedin")}
-              style={{ padding: "8px", fontSize: "16px" }}
-            />
-            {errors.linkedin && (
-              <span style={{ color: "red" }}>{errors.linkedin.message}</span>
-            )}
-            <Button variant="contained" type="submit">
-              Add
-            </Button>
-            <Button
-              variant="text"
-              onClick={() => {
-                setAddOpen(false);
-                reset();
-              }}
-            >
-              Cancel
-            </Button>
+          <form onSubmit={handleSubmit(handleAddIntern)}>
+            <Stack spacing={2}>
+              <TextField
+                label="Name"
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
+                fullWidth
+              />
+              <TextField
+                label="Email"
+                {...register("email")}
+                error={!!errors.email}
+                helperText={errors.email?.message}
+                fullWidth
+              />
+              <TextField
+                type="date"
+                label="Joined Date"
+                {...register("joined_date")}
+                error={!!errors.joined_date}
+                helperText={errors.joined_date?.message}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+              <TextField
+                label="Bio"
+                {...register("bio")}
+                error={!!errors.bio}
+                helperText={errors.bio?.message}
+                fullWidth
+              />
+              <TextField
+                label="LinkedIn URL"
+                {...register("linkedin")}
+                error={!!errors.linkedin}
+                helperText={errors.linkedin?.message}
+                fullWidth
+              />
+              <Stack direction="row" justifyContent="space-between">
+                <Button variant="contained" type="submit">
+                  Add
+                </Button>
+                <Button
+                  variant="text"
+                  onClick={() => {
+                    setAddOpen(false);
+                    reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+              </Stack>
+            </Stack>
           </form>
         </Paper>
       </Modal>
-      {interns.map((intern) => (
-        <InternCard key={intern.id} intern={intern} />
-      ))}
+
+      {isLoading ? (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
+      ) : interns.length === 0 ? (
+        <Box display="flex" flexDirection="column" alignItems="center" mt={8}>
+          <Box
+            sx={{
+              width: 120,
+              height: 120,
+              mb: 2,
+              opacity: 0.7,
+              background:
+                "url(https://cdn-icons-png.flaticon.com/512/4076/4076549.png) center/contain no-repeat",
+            }}
+          />
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            No interns found
+          </Typography>
+          <Typography color="text.secondary">
+            Get started by adding your first intern!
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 3,
+              justifyContent: "center",
+            }}
+          >
+            {paginatedInterns.map((intern) => (
+              <Box
+                key={intern.id}
+                sx={{
+                  flex: { xs: "0 0 100%", md: "0 0 48%" },
+                  maxWidth: { xs: "100%", md: "340px" },
+                  minWidth: { xs: "100%", md: "320px" },
+                  minHeight: 320,
+                  display: "flex",
+                  alignItems: "stretch",
+                }}
+              >
+                <InternCard intern={intern} />
+              </Box>
+            ))}
+          </Box>
+
+          {totalPages > 1 && (
+            <Box display="flex" justifyContent="center" mt={4}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+              />
+            </Box>
+          )}
+        </>
+      )}
     </Container>
   );
 }

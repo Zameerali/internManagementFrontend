@@ -9,6 +9,7 @@ import {
   Typography,
   Modal,
   Paper,
+  Chip,
 } from "@mui/material";
 import type { Project, ProjectHistoryItem } from "./type";
 import type { Intern } from "../interns/type";
@@ -21,7 +22,7 @@ export function ProjectCard({
   selectedInterns,
   handleInternsChange,
   handleAssign,
-  handleUnAssign,
+  // handleUnAssign, // Unassign logic removed
   currentStatus,
   historyOpen,
   selectedProjectId,
@@ -37,7 +38,7 @@ export function ProjectCard({
   selectedInterns: { [key: number]: number[] };
   handleInternsChange: (projectId: number, value: number[]) => void;
   handleAssign: (projectId: number) => void;
-  handleUnAssign: (projectId: number) => void;
+  // handleUnAssign: (projectId: number) => void; // Unassign logic removed
   currentStatus: string;
   historyOpen: boolean;
   selectedProjectId: number | typeof skipToken;
@@ -47,25 +48,46 @@ export function ProjectCard({
   historyData: ProjectHistoryItem[];
   handleStatusChange: (projectId: number, value: string) => void;
 }) {
-    const { data: assigned = [] } = useGetAssignedInternsQuery(project.id);
-    const assignedInternIds = Array.isArray(assigned) ? assigned : [];
+  const { data: assigned = [] } = useGetAssignedInternsQuery(project.id);
+  const assignedInternIds = Array.isArray(assigned) ? assigned : [];
   return (
     <Box
       key={project.id}
-      sx={{ mb: 4, p: 2, border: "1px solid #ccc", borderRadius: "8px" }}
+      sx={{
+        mb: 4,
+        p: { xs: 2, sm: 3 },
+        borderRadius: 3,
+        boxShadow: 3,
+        background: "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
+        border: "1px solid #e3f2fd",
+        transition: "box-shadow 0.2s",
+        ":hover": { boxShadow: 8 },
+        minWidth: 280,
+        maxWidth: 700,
+        mx: "auto",
+      }}
     >
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          mb: 2,
         }}
       >
-        <h2>{project.name}</h2>
+        <Typography
+          variant="h5"
+          fontWeight={700}
+          color="primary.dark"
+          sx={{ letterSpacing: 0.5 }}
+        >
+          {project.name}
+        </Typography>
         <Button
           variant="outlined"
           size="small"
           onClick={() => handleViewHistory(project)}
+          sx={{ borderRadius: 2, fontWeight: 600, textTransform: "none" }}
         >
           View History
         </Button>
@@ -139,42 +161,7 @@ export function ProjectCard({
         </Paper>
       </Modal>
 
-      {/* Assigned Interns */}
-      <div>
-        <strong>Already Assigned Interns:</strong>
-        {assignedInternIds.length === 0 ? (
-          <span> None</span>
-        ) : (
-          <FormControl fullWidth sx={{ mt: 1, mb: 1 }}>
-            <InputLabel id={`assigned-interns-label-${project.id}`}>
-              Select to Unassign
-            </InputLabel>
-            <Select
-              labelId={`assigned-interns-label-${project.id}`}
-              multiple
-              value={selectedInterns[project.id] || []}
-              onChange={(e) =>
-                handleInternsChange(project.id, e.target.value as number[])
-              }
-              label="Select to Unassign"
-              disabled={currentStatus === "completed"}
-            >
-              {assignedInternIds.map((internId) => {
-                const intern = allInterns.find((i) => i.id === internId);
-                return intern ? (
-                  <MenuItem key={intern.id} value={intern.id}>
-                    {intern.name}
-                  </MenuItem>
-                ) : (
-                  <MenuItem key={internId} value={internId}>
-                    {`ID ${internId}`}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-        )}
-      </div>
+      {/* Assigned Interns display removed; unassign logic is handled in Tasks page */}
 
       {/* Available Interns */}
       <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
@@ -190,9 +177,42 @@ export function ProjectCard({
           }
           label="Select Interns"
           disabled={currentStatus === "completed"}
+          renderValue={(selected) => (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+              {Array.isArray(selected) && selected.length > 0 ? (
+                selected.map((id) => {
+                  const intern = interns.find((i) => i.id === id);
+                  return (
+                    <Chip
+                      key={id}
+                      label={intern ? intern.name : `ID ${id}`}
+                      size="small"
+                      sx={{
+                        fontWeight: 500,
+                        bgcolor: "#e3f2fd",
+                        color: "#1976d2",
+                      }}
+                    />
+                  );
+                })
+              ) : (
+                <span style={{ color: "#888" }}>Select Interns</span>
+              )}
+            </Box>
+          )}
+          sx={{ borderRadius: 2, bgcolor: "#fff" }}
+          MenuProps={{
+            PaperProps: {
+              sx: { borderRadius: 2, boxShadow: 3, mt: 1 },
+            },
+          }}
         >
           {interns.map((intern) => (
-            <MenuItem key={intern.id} value={intern.id}>
+            <MenuItem
+              key={intern.id}
+              value={intern.id}
+              sx={{ borderRadius: 1 }}
+            >
               {intern.name}
             </MenuItem>
           ))}
@@ -210,6 +230,12 @@ export function ProjectCard({
           }
           label="Status"
           disabled={currentStatus === "completed"}
+          sx={{ borderRadius: 2, bgcolor: "#fff" }}
+          MenuProps={{
+            PaperProps: {
+              sx: { borderRadius: 2, boxShadow: 3, mt: 1 },
+            },
+          }}
         >
           <MenuItem value="in_progress">In Progress</MenuItem>
           <MenuItem value="completed">Completed</MenuItem>
@@ -218,20 +244,22 @@ export function ProjectCard({
 
       <Button
         variant="contained"
-        sx={{ mr: 2 }}
+        sx={{
+          mr: 2,
+          borderRadius: 2,
+          fontWeight: 600,
+          textTransform: "none",
+          px: 4,
+          py: 1.2,
+          boxShadow: "0 2px 8px rgba(25, 118, 210, 0.08)",
+          background: "linear-gradient(90deg, #1976d2 60%, #64b5f6 100%)",
+        }}
         onClick={() => handleAssign(project.id)}
         disabled={currentStatus === "completed"}
       >
         Assign
       </Button>
-      <Button
-        variant="outlined"
-        color="error"
-        onClick={() => handleUnAssign(project.id)}
-        disabled={currentStatus === "completed"}
-      >
-        Unassign
-      </Button>
+      {/* Unassign button removed; unassignment is handled in Tasks page */}
     </Box>
   );
 }
