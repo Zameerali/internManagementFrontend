@@ -53,20 +53,41 @@ export function ProjectCard({
   return (
     <Box
       key={project.id}
-      sx={{ mb: 4, p: 2, border: "1px solid #ccc", borderRadius: "8px" }}
+      sx={{
+        mb: 4,
+        p: { xs: 2, sm: 3 },
+        borderRadius: 3,
+        boxShadow: 3,
+        background: "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
+        border: "1px solid #e3f2fd",
+        transition: "box-shadow 0.2s",
+        ":hover": { boxShadow: 8 },
+        minWidth: 280,
+        maxWidth: 700,
+        mx: "auto",
+      }}
     >
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          mb: 2,
         }}
       >
-        <h2>{project.name}</h2>
+        <Typography
+          variant="h5"
+          fontWeight={700}
+          color="primary.dark"
+          sx={{ letterSpacing: 0.5 }}
+        >
+          {project.name}
+        </Typography>
         <Button
           variant="outlined"
           size="small"
           onClick={() => handleViewHistory(project)}
+          sx={{ borderRadius: 2, fontWeight: 600, textTransform: "none" }}
         >
           View History
         </Button>
@@ -166,7 +187,11 @@ export function ProjectCard({
                       key={id}
                       label={intern ? intern.name : `ID ${id}`}
                       size="small"
-                      sx={{ fontWeight: 500 }}
+                      sx={{
+                        fontWeight: 500,
+                        bgcolor: "#e3f2fd",
+                        color: "#1976d2",
+                      }}
                     />
                   );
                 })
@@ -175,9 +200,19 @@ export function ProjectCard({
               )}
             </Box>
           )}
+          sx={{ borderRadius: 2, bgcolor: "#fff" }}
+          MenuProps={{
+            PaperProps: {
+              sx: { borderRadius: 2, boxShadow: 3, mt: 1 },
+            },
+          }}
         >
           {interns.map((intern) => (
-            <MenuItem key={intern.id} value={intern.id}>
+            <MenuItem
+              key={intern.id}
+              value={intern.id}
+              sx={{ borderRadius: 1 }}
+            >
               {intern.name}
             </MenuItem>
           ))}
@@ -195,6 +230,12 @@ export function ProjectCard({
           }
           label="Status"
           disabled={currentStatus === "completed"}
+          sx={{ borderRadius: 2, bgcolor: "#fff" }}
+          MenuProps={{
+            PaperProps: {
+              sx: { borderRadius: 2, boxShadow: 3, mt: 1 },
+            },
+          }}
         >
           <MenuItem value="in_progress">In Progress</MenuItem>
           <MenuItem value="completed">Completed</MenuItem>
@@ -203,7 +244,16 @@ export function ProjectCard({
 
       <Button
         variant="contained"
-        sx={{ mr: 2 }}
+        sx={{
+          mr: 2,
+          borderRadius: 2,
+          fontWeight: 600,
+          textTransform: "none",
+          px: 4,
+          py: 1.2,
+          boxShadow: "0 2px 8px rgba(25, 118, 210, 0.08)",
+          background: "linear-gradient(90deg, #1976d2 60%, #64b5f6 100%)",
+        }}
         onClick={() => handleAssign(project.id)}
         disabled={currentStatus === "completed"}
       >

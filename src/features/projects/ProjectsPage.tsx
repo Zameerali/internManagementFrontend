@@ -37,7 +37,9 @@ import {
   Modal,
   Typography,
   Paper,
+  Pagination,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import type { Project, ProjectHistoryItem } from "./type";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -285,18 +287,26 @@ export default function ProjectsPage() {
   // };
 
   const { data: assignedIdsByProject = {} } = useGetAllAssignedInternsQuery();
+  // Pagination logic
+  const [page, setPage] = React.useState(1);
+  const projectsPerPage = 9;
+  const totalPages = Math.ceil(projects.length / projectsPerPage);
+  const paginatedProjects = projects.slice(
+    (page - 1) * projectsPerPage,
+    page * projectsPerPage
+  );
+
   return (
-    <Container
-      sx={{ padding: "2rem", margin: "0 auto", maxWidth: "900px", mt: 8 }}
-    >
-      <h1
-        className="text-2xl font-bold"
-        style={{ textAlign: "center", marginBottom: "16px" }}
-      >
+    <Container sx={{ py: 5, maxWidth: "1200px" }}>
+      <Typography variant="h4" align="center" fontWeight="bold" gutterBottom>
         Projects
-      </h1>
+      </Typography>
       <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-        <Button variant="contained" onClick={() => setAddOpen(true)}>
+        <Button
+          variant="contained"
+          onClick={() => setAddOpen(true)}
+          startIcon={<AddIcon />}
+        >
           Add Project
         </Button>
       </Box>
@@ -331,46 +341,123 @@ export default function ProjectsPage() {
           </Box>
         </Paper>
       </Modal>
-      {projects.map((project) => {
-        const currentStatus = project.status || "in_progress";
-        const currentAssigned = assignedIdsByProject[project.id] || [];
-
-        // Build a set of all intern IDs assigned to any in-progress project
-        const assignedToInProgress = new Set<number>();
-        projects.forEach((proj) => {
-          if (proj.status !== "completed" && assignedIdsByProject[proj.id]) {
-            assignedIdsByProject[proj.id].forEach((internId) => {
-              assignedToInProgress.add(internId);
-            });
-          }
-        });
-
-        // Only show interns who are NOT assigned to any in-progress project,
-        // OR are already assigned to this project
-        const availableInterns = interns.filter(
-          (intern) => !assignedToInProgress.has(intern.id)
-        );
-        return (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            interns={availableInterns}
-            allInterns={interns}
-            selectedInterns={selectedInterns}
-            handleInternsChange={handleInternsChange}
-            handleAssign={handleAssign}
-            // Unassign logic removed; only assignment is allowed from ProjectsPage
-            currentStatus={currentStatus}
-            historyOpen={historyOpen}
-            selectedProjectId={selectedProjectId}
-            handleViewHistory={handleViewHistory}
-            handleCloseHistory={handleCloseHistory}
-            historyProjectName={historyProjectName}
-            historyData={historyData}
-            handleStatusChange={handleStatusChange}
+      {projects.length === 0 ? (
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          mt={8}
+          sx={{
+            background: "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
+            borderRadius: 4,
+            boxShadow: 3,
+            p: { xs: 4, sm: 6 },
+            maxWidth: 400,
+            mx: "auto",
+            border: "1px solid #e3f2fd",
+          }}
+        >
+          <Box
+            sx={{
+              width: 120,
+              height: 120,
+              mb: 2,
+              opacity: 0.7,
+              background:
+                "url(https://cdn-icons-png.flaticon.com/512/4076/4076549.png) center/contain no-repeat",
+            }}
           />
-        );
-      })}
+          <Typography
+            variant="h5"
+            color="primary.dark"
+            fontWeight={700}
+            gutterBottom
+            sx={{ letterSpacing: 0.5 }}
+          >
+            No projects found
+          </Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 18, mb: 1 }}>
+            Get started by adding your first project!
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 3,
+              justifyContent: "center",
+            }}
+          >
+            {paginatedProjects.map((project) => {
+              const currentStatus = project.status || "in_progress";
+              const currentAssigned = assignedIdsByProject[project.id] || [];
+
+              // Build a set of all intern IDs assigned to any in-progress project
+              const assignedToInProgress = new Set<number>();
+              projects.forEach((proj) => {
+                if (
+                  proj.status !== "completed" &&
+                  assignedIdsByProject[proj.id]
+                ) {
+                  assignedIdsByProject[proj.id].forEach((internId) => {
+                    assignedToInProgress.add(internId);
+                  });
+                }
+              });
+
+              // Only show interns who are NOT assigned to any in-progress project,
+              // OR are already assigned to this project
+              const availableInterns = interns.filter(
+                (intern) => !assignedToInProgress.has(intern.id)
+              );
+              return (
+                <Box
+                  key={project.id}
+                  sx={{
+                    flex: { xs: "0 0 100%", md: "0 0 48%" },
+                    maxWidth: { xs: "100%", md: "340px" },
+                    minWidth: { xs: "100%", md: "320px" },
+                    minHeight: 320,
+                    display: "flex",
+                    alignItems: "stretch",
+                  }}
+                >
+                  <ProjectCard
+                    project={project}
+                    interns={availableInterns}
+                    allInterns={interns}
+                    selectedInterns={selectedInterns}
+                    handleInternsChange={handleInternsChange}
+                    handleAssign={handleAssign}
+                    // Unassign logic removed; only assignment is allowed from ProjectsPage
+                    currentStatus={currentStatus}
+                    historyOpen={historyOpen}
+                    selectedProjectId={selectedProjectId}
+                    handleViewHistory={handleViewHistory}
+                    handleCloseHistory={handleCloseHistory}
+                    historyProjectName={historyProjectName}
+                    historyData={historyData}
+                    handleStatusChange={handleStatusChange}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
+          {totalPages > 1 && (
+            <Box display="flex" justifyContent="center" mt={4}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+              />
+            </Box>
+          )}
+        </>
+      )}
     </Container>
   );
 }

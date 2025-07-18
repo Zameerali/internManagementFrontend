@@ -5,6 +5,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { useGetAllTasksWithInternsQuery } from "./tasksApi";
@@ -112,6 +113,48 @@ const TasksListPage = () => {
       >
         {isLoading ? (
           <Box sx={{ textAlign: "center", py: 4 }}>Loading tasks...</Box>
+        ) : tasks.length === 0 ? (
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            mt={8}
+            sx={{
+              background: "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
+              borderRadius: 4,
+              boxShadow: 3,
+              p: { xs: 4, sm: 6 },
+              maxWidth: 400,
+              mx: "auto",
+              border: "1px solid #e3f2fd",
+            }}
+          >
+            <Box
+              sx={{
+                width: 120,
+                height: 120,
+                mb: 2,
+                opacity: 0.7,
+                background:
+                  "url(https://cdn-icons-png.flaticon.com/512/4076/4076549.png) center/contain no-repeat",
+              }}
+            />
+            <span
+              style={{
+                fontSize: 22,
+                color: "#1976d2",
+                fontWeight: 700,
+                marginBottom: 8,
+                letterSpacing: 0.5,
+              }}
+            >
+              No tasks found
+            </span>
+            <span style={{ color: "#888", fontSize: 18, marginBottom: 2 }}>
+              Get started by assigning your first task to interns!
+            </span>
+          </Box>
         ) : (
           sortedProjects.map((project: any) => {
             const projectTasks = tasksByProject[project.id] || [];
@@ -125,6 +168,7 @@ const TasksListPage = () => {
             });
             return (
               <Box key={project.id} sx={{ mb: 4 }}>
+                {/* ...existing code for project/intern/task rendering... */}
                 <Box
                   sx={{
                     display: "flex",
@@ -279,34 +323,73 @@ const TasksListPage = () => {
                               key={task.id}
                               sx={{
                                 mb: 2,
-                                padding: "1rem",
-                                backgroundColor: "#f0f0f0",
-                                borderRadius: "8px",
+                                p: 2.5,
+                                background:
+                                  "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
+                                borderRadius: 3,
+                                boxShadow: 2,
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: "0.5rem",
-                                borderBottom: "1px solid #eee",
-                                paddingBottom: "1rem",
+                                gap: 1,
+                                border: "1px solid #e3f2fd",
+                                transition: "box-shadow 0.2s",
+                                ":hover": { boxShadow: 6 },
+                                borderBottom: "none",
                                 "&:last-child": {
                                   mb: 0,
-                                  borderBottom: "none",
-                                  paddingBottom: "0",
                                 },
                               }}
                             >
-                              <span>
-                                <strong>Title:</strong> {task.title}
-                              </span>
-                              <span>
-                                <strong>Description:</strong> {task.description}
-                              </span>
-                              <span>
-                                <strong>Status:</strong> {task.status}
-                              </span>
-                              <span>
-                                <strong>Task Date:</strong>{" "}
-                                {task.task_date.split("T")[0]}
-                              </span>
+                              <Typography
+                                variant="subtitle1"
+                                fontWeight={700}
+                                color="primary.dark"
+                                gutterBottom
+                              >
+                                {task.title}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mb: 0.5 }}
+                              >
+                                {task.description}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: 2,
+                                  flexWrap: "wrap",
+                                  mt: 0.5,
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  color="primary"
+                                  sx={{
+                                    fontWeight: 600,
+                                    bgcolor: "#e3f2fd",
+                                    px: 1.2,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                  }}
+                                >
+                                  Status: {task.status}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{
+                                    fontWeight: 500,
+                                    px: 1.2,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                    bgcolor: "#f0f0f0",
+                                  }}
+                                >
+                                  Date: {task.task_date.split("T")[0]}
+                                </Typography>
+                              </Box>
                             </Box>
                           ))
                         )}
