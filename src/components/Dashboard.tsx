@@ -1,5 +1,8 @@
 import React from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useLogoutMutation } from "../features/auth/authApi";
+import { logout } from "../features/auth/authSlice";
 import {
   AppBar,
   Toolbar,
@@ -22,12 +25,20 @@ export default function DashboardLayout() {
     { label: "Projects", path: "/projects" },
     { label: "Tasks", path: "/tasks" },
   ];
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const toggleDrawer = () => setDrawerOpen((prev) => !prev);
 
-  const toggleDrawer = () => {
-    setDrawerOpen((prev) => !prev);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [logoutApi] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi().unwrap();
+    } catch {}
+    dispatch(logout());
+    navigate("/login");
   };
 
   return (
@@ -68,7 +79,9 @@ export default function DashboardLayout() {
             Intern Dashboard
           </Typography>
 
-          <Box sx={{ display: { xs: "none", md: "flex" } }}>
+          <Box
+            sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}
+          >
             <Stack direction="row" spacing={3}>
               {navItems.map((item) => (
                 <Button
@@ -84,7 +97,6 @@ export default function DashboardLayout() {
                     bgcolor: "rgba(255,255,255,0.08)",
                     fontSize: "1rem",
                     boxShadow: 2,
-
                     "&:hover": {
                       bgcolor: "rgba(255,255,255,0.18)",
                     },
@@ -93,6 +105,25 @@ export default function DashboardLayout() {
                   {item.label}
                 </Button>
               ))}
+              <Button
+                onClick={handleLogout}
+                color="secondary"
+                variant="contained"
+                sx={{
+                  ml: 2,
+                  px: 2.5,
+                  py: 1,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  bgcolor: "#ef4444",
+                  color: "#fff",
+                  boxShadow: 2,
+                  fontSize: "1rem",
+                  "&:hover": { bgcolor: "#dc2626" },
+                }}
+              >
+                Logout
+              </Button>
             </Stack>
           </Box>
 
@@ -140,6 +171,30 @@ export default function DashboardLayout() {
                   {item.label}
                 </Button>
               ))}
+              <Button
+                onClick={() => {
+                  setDrawerOpen(false);
+                  handleLogout();
+                }}
+                color="secondary"
+                variant="contained"
+                fullWidth
+                sx={{
+                  mt: 1,
+                  textAlign: "left",
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  fontSize: "1rem",
+                  py: 1.2,
+                  px: 2,
+                  bgcolor: "#ef4444",
+                  color: "#fff",
+                  boxShadow: 2,
+                  "&:hover": { bgcolor: "#dc2626" },
+                }}
+              >
+                Logout
+              </Button>
             </Stack>
           </Box>
         </Collapse>

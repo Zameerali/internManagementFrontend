@@ -1,11 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { Project } from "./type";
+import { apiBaseQuery } from "../../app/apiBase"; 
 
 export type AssignedInternsMap = { [key: number]: number[] };
 
 export const projectsApi = createApi({
   reducerPath: "projectsApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/api" }),
+  baseQuery: apiBaseQuery,
   tagTypes: ["Projects", "ProjectHistory", "AssignedInterns"],
   endpoints: (builder) => ({
     getAllProjects: builder.query<Project[], void>({

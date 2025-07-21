@@ -1,9 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { Task,NewTask } from "./type";
+import { apiBaseQuery } from "../../app/apiBase";
+
 
 export const tasksApi = createApi({
   reducerPath: "tasksApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/api" }),
+  baseQuery: apiBaseQuery,
   tagTypes: ["tasks"],
   endpoints: (builder) => ({
     getTasksByIntern: builder.query<Task[], { internId: number }>({

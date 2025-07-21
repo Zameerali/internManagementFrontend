@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { Intern } from "./type";
+import { apiBaseQuery } from "../../app/apiBase";
 
 export const internsApi = createApi({
   reducerPath: "internsApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/api" }),
+  baseQuery: apiBaseQuery,
   tagTypes: ["Interns"],
   endpoints: (builder) => ({
     getAllInterns: builder.query<Intern[], void>({
@@ -40,5 +41,4 @@ export const {
   useGetAllInternsQuery,
   useAddInternMutation,
   useGetInternWithProfileQuery,
-  
 } = internsApi;
