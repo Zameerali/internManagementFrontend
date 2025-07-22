@@ -16,6 +16,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import { showSnackbar } from "../auth/authSlice";
 export default function TasksPage() {
   const theme = useTheme();
   const { id } = useParams();
@@ -43,7 +44,6 @@ export default function TasksPage() {
   const { data: projects, isLoading: isProjectsLoading } =
     useGetAllProjectsQuery();
 
-  // Show loader until all data is loaded
   const loading =
     isTasksLoading ||
     isAssignedLoading ||
@@ -133,6 +133,9 @@ export default function TasksPage() {
             )}
             {numericProjectId && internId > 0 && !isNaN(internId) && (
               <Box mt={2}>
+                <Typography variant="subtitle1" fontWeight={600} mb={1}>
+                  Add New Task
+                </Typography>
                 <AddTask internId={internId} projectId={numericProjectId} />
               </Box>
             )}

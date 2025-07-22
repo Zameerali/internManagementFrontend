@@ -41,6 +41,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import type { Project, ProjectHistoryItem } from "./type";
+import { showSnackbar } from "../auth/authSlice";
 
 import { useSelector, useDispatch } from "react-redux";
 // import {
@@ -51,6 +52,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { Intern } from "../../types/intern";
 
 export default function ProjectsPage() {
+  const dispatch = useDispatch();
   const [addOpen, setAddOpen] = React.useState(false);
 
   const { data: projects = [], isLoading: projectsLoading } =
@@ -172,6 +174,12 @@ export default function ProjectsPage() {
       ...prev,
       [projectId]: value,
     }));
+    dispatch(
+      showSnackbar({
+        message: "Interns selection updated",
+        severity: "info",
+      })
+    );
   };
 
   const handleStatusChange = async (projectId: number, value: string) => {
@@ -182,6 +190,12 @@ export default function ProjectsPage() {
       return;
     }
     await updateProjectStatus({ projectId, status: value }).unwrap();
+    dispatch(
+      showSnackbar({
+        message: "Project status updated successfully!",
+        severity: "success",
+      })
+    );
     await logProjectHistory({
       projectId,
       payload: { action: "status_changed", status: value },
@@ -231,7 +245,12 @@ export default function ProjectsPage() {
     }).unwrap();
     // Reset selection after assignment
     setSelectedInterns((prev) => ({ ...prev, [projectId]: [] }));
-    alert("Project assigned successfully!");
+    dispatch(
+      showSnackbar({
+        message: "Project assigned successfully!",
+        severity: "success",
+      })
+    );
   };
 
   // const handleUnAssign = async (projectId: number) => {

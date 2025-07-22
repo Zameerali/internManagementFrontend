@@ -93,7 +93,6 @@ export function ProjectCard({
         </Button>
       </Box>
 
-      {/* History Modal */}
       <Modal
         open={historyOpen && selectedProjectId === project.id}
         onClose={handleCloseHistory}
@@ -161,9 +160,7 @@ export function ProjectCard({
         </Paper>
       </Modal>
 
-      {/* Assigned Interns display removed; unassign logic is handled in Tasks page */}
 
-      {/* Available Interns */}
       <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
         <InputLabel id={`interns-label-${project.id}`}>
           Select Interns
@@ -219,7 +216,6 @@ export function ProjectCard({
         </Select>
       </FormControl>
 
-      {/* Project Status */}
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel id={`status-label-${project.id}`}>Status</InputLabel>
         <Select
@@ -259,7 +255,6 @@ export function ProjectCard({
       >
         Assign
       </Button>
-      {/* Unassign button removed; unassignment is handled in Tasks page */}
     </Box>
   );
 }

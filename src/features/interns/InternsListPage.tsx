@@ -18,6 +18,8 @@ import {
 } from "@mui/material";
 import InternCard from "../../components/InternCard.tsx";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import { showSnackbar } from "../auth/authSlice.ts";
+import { useDispatch } from "react-redux";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
@@ -31,6 +33,7 @@ const schema = yup.object().shape({
 });
 
 export default function InternListPage() {
+  const dispatch = useDispatch();
   const [addOpen, setAddOpen] = useState(false);
   const { data: interns = [], isLoading } = useGetAllInternsQuery();
   const [addIntern] = useAddInternMutation();
@@ -63,9 +66,20 @@ export default function InternListPage() {
     try {
       await addIntern(data).unwrap();
       setAddOpen(false);
+      dispatch(
+        showSnackbar({
+          message: "Intern added successfully!",
+          severity: "success",
+        })
+      );
       reset();
     } catch (e) {
-      alert("Failed to add intern");
+      dispatch(
+        showSnackbar({
+          message: "Failed to add intern",
+          severity: "error",
+        })
+      );
     }
   };
 

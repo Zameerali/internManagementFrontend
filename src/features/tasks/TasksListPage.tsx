@@ -6,8 +6,18 @@ import {
   Select,
   MenuItem,
   Typography,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Box,
+  Button,
+  Stack,
+  Divider,
+  Avatar,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
-import { Box } from "@mui/system";
 import { useGetAllTasksWithInternsQuery } from "./tasksApi";
 import {
   useGetAllProjectsQuery,
@@ -17,7 +27,11 @@ import {
   useLogProjectHistoryMutation,
 } from "../projects/projectsApi";
 import { useGetAllInternsQuery } from "../interns/internsApi";
+import { showSnackbar } from "../auth/authSlice";
+import { useDispatch } from "react-redux";
+import { CircularProgress } from "@mui/material";
 const TasksListPage = () => {
+  const dispatch = useDispatch();
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
   const [unassignProjectFromInterns] = useUnassignProjectFromInternsMutation();
   const [logProjectHistory] = useLogProjectHistoryMutation();
@@ -64,6 +78,12 @@ const TasksListPage = () => {
             projectId: project.id,
             internIds: assignedInternIds,
           }).unwrap();
+          dispatch(
+            showSnackbar({
+              message: `All interns unassigned from project '${project.name}' due to completion`,
+              severity: "info",
+            })
+          );
           await logProjectHistory({
             projectId: project.id,
             payload: {
@@ -81,46 +101,31 @@ const TasksListPage = () => {
     unassignProjectFromInterns,
     assignedIdsByProject,
   ]);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   return (
-    <Container
-      sx={{
-        mt: 4,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "2rem",
-        margin: "0 auto",
-        backgroundColor: "#f9f9f9",
-        width: "100vw",
-        maxWidth: "1600px",
-        borderRadius: "8px",
-      }}
-    >
-      <Box
-        sx={{
-          mt: 0,
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: "2rem",
-          padding: "1rem",
-          backgroundColor: "#fff",
-          borderRadius: "8px",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          border: "1px solid #eee",
-          overflowY: "auto",
-        }}
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography
+        variant="h4"
+        fontWeight={700}
+        color="primary"
+        align="center"
+        gutterBottom
       >
+        Tasks & Assignments
+      </Typography>
+      <Box sx={{ width: "100%", mt: 3 }}>
         {isLoading ? (
-          <Box sx={{ textAlign: "center", py: 4 }}>Loading tasks...</Box>
+          <Card sx={{ p: 4, textAlign: "center", boxShadow: 2 }}>
+            <CircularProgress />
+          </Card>
         ) : tasks.length === 0 ? (
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            mt={8}
+          <Card
             sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               background: "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
               borderRadius: 4,
               boxShadow: 3,
@@ -140,266 +145,322 @@ const TasksListPage = () => {
                   "url(https://cdn-icons-png.flaticon.com/512/4076/4076549.png) center/contain no-repeat",
               }}
             />
-            <span
-              style={{
-                fontSize: 22,
-                color: "#1976d2",
-                fontWeight: 700,
-                marginBottom: 8,
-                letterSpacing: 0.5,
-              }}
+            <Typography
+              variant="h6"
+              color="primary"
+              fontWeight={700}
+              sx={{ mb: 1 }}
             >
               No tasks found
-            </span>
-            <span style={{ color: "#888", fontSize: 18, marginBottom: 2 }}>
+            </Typography>
+            <Typography color="text.secondary" sx={{ fontSize: 18 }}>
               Get started by assigning your first task to interns!
-            </span>
-          </Box>
+            </Typography>
+          </Card>
         ) : (
-          sortedProjects.map((project: any) => {
-            const projectTasks = tasksByProject[project.id] || [];
-            const completed = isProjectCompleted(projectTasks);
-            const assignedInternIds = assignedIdsByProject[project.id] || [];
-            const internTasksMap: { [key: number]: typeof projectTasks } = {};
-            assignedInternIds.forEach((internId: number) => {
-              internTasksMap[internId] = projectTasks.filter(
-                (t) => t.intern_id === internId
-              );
-            });
-            return (
-              <Box key={project.id} sx={{ mb: 4 }}>
-                {/* ...existing code for project/intern/task rendering... */}
-                <Box
+          <Stack spacing={4}>
+            {sortedProjects.map((project: any) => {
+              const projectTasks = tasksByProject[project.id] || [];
+              const completed = isProjectCompleted(projectTasks);
+              const assignedInternIds = assignedIdsByProject[project.id] || [];
+              const internTasksMap: { [key: number]: typeof projectTasks } = {};
+              assignedInternIds.forEach((internId: number) => {
+                internTasksMap[internId] = projectTasks.filter(
+                  (t) => t.intern_id === internId
+                );
+              });
+              return (
+                <Card
+                  key={project.id}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    fontWeight: 700,
-                    fontSize: "1.2rem",
-                    mb: 2,
-                    color: completed ? "#388e3c" : "#1976d2",
+                    boxShadow: 3,
+                    borderRadius: 3,
+                    border: "1px solid #e3f2fd",
+                    background:
+                      "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
                   }}
                 >
-                  <span>
-                    Project: {project.name}
-                    {completed && (
-                      <span
-                        style={{
-                          marginLeft: 12,
-                          color: "#388e3c",
-                          fontWeight: 600,
-                        }}
+                  <CardHeader
+                    title={
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
                       >
-                        (Completed)
-                      </span>
-                    )}
-                  </span>
-                  <Box sx={{ minWidth: 180 }}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel id={`assigned-interns-label-${project.id}`}>
-                        Assigned Interns
-                      </InputLabel>
-                      <Select
-                        labelId={`assigned-interns-label-${project.id}`}
-                        label="Assigned Interns"
-                        defaultValue=""
-                        onChange={async (e) => {
-                          const internId = Number(e.target.value);
-                          if (!internId) return;
-                          alert(
-                            `Unassign intern ID ${internId} from project '${project.name}'`
-                          );
-                        }}
-                        displayEmpty
-                        sx={{ background: "#fff" }}
-                      >
-                        <MenuItem value="" disabled>
-                          Assigned Interns
-                        </MenuItem>
-                        {interns
-                          .filter((intern) =>
-                            assignedInternIds.includes(intern.id)
-                          )
-                          .map((intern) => (
-                            <MenuItem key={intern.id} value={intern.id}>
-                              {intern.name}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Box>
-                {project.status === "completed" && (
-                  <Box sx={{ color: "#388e3c", mb: 2, fontWeight: 600 }}>
-                    This project is completed.
-                  </Box>
-                )}
-                {assignedInternIds.length === 0 ? (
-                  project.status !== "completed" ? (
-                    <Box sx={{ color: "#888", mb: 2 }}>No tasks assigned.</Box>
-                  ) : null
-                ) : (
-                  assignedInternIds.map((internId: number) => {
-                    const intern = interns.find((i: any) => i.id === internId);
-                    const internTasks = internTasksMap[internId] || [];
-                    const canUnassign =
-                      internTasks.length === 0 ||
-                      internTasks.every((t) => t.status === "completed");
-                    return (
-                      <Box key={internId} sx={{ mb: 3 }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            fontWeight: 600,
-                            mb: 1,
-                            color: "#1976d2",
-                          }}
+                        <Typography
+                          variant="h6"
+                          fontWeight={700}
+                          color={completed ? "success.main" : "primary.main"}
                         >
-                          <span>
-                            {intern ? intern.name : `Intern ID ${internId}`}
-                          </span>
-                          <span>
-                            <button
-                              style={{
-                                marginLeft: 12,
-                                padding: "4px 10px",
-                                borderRadius: "4px",
-                                border: "none",
-                                background: canUnassign ? "#d32f2f" : "#ccc",
-                                color: "#fff",
-                                fontWeight: 500,
-                                cursor: canUnassign ? "pointer" : "not-allowed",
-                              }}
-                              disabled={!canUnassign}
-                              onClick={async () => {
-                                if (!canUnassign) {
-                                  alert(
-                                    "Cannot unassign: This intern has in-progress tasks in this project."
-                                  );
-                                  return;
-                                }
-                                try {
-                                  await unassignProjectFromInterns({
-                                    projectId: project.id,
-                                    internIds: [internId],
-                                  }).unwrap();
-                                  await logProjectHistory({
-                                    projectId: project.id,
-                                    payload: {
-                                      action: `Intern '${
-                                        intern ? intern.name : internId
-                                      }' unassigned from project '${
-                                        project.name
-                                      }'`,
-                                    },
-                                  });
-                                  alert(
-                                    `Intern '${
-                                      intern ? intern.name : internId
-                                    }' unassigned from project '${
-                                      project.name
-                                    }'.`
-                                  );
-                                } catch (err) {
-                                  alert(
-                                    "Failed to unassign intern. Please try again."
-                                  );
-                                }
-                              }}
-                            >
-                              Unassign
-                            </button>
-                          </span>
-                        </Box>
-                        {internTasks.length === 0 ? (
-                          <Box sx={{ color: "#888", mb: 2 }}>
-                            No tasks assigned to this intern.
-                          </Box>
-                        ) : (
-                          internTasks.map((task) => (
-                            <Box
-                              key={task.id}
+                          Project: {project.name}
+                        </Typography>
+                        {completed && (
+                          <Chip
+                            label="Completed"
+                            color="success"
+                            size="small"
+                          />
+                        )}
+                      </Box>
+                    }
+                    action={
+                      <FormControl
+                        size="small"
+                        sx={{
+                          minWidth: isMobile ? 120 : 180,
+                          background: "#fff",
+                          borderRadius: 1,
+                        }}
+                      >
+                        <InputLabel id={`assigned-interns-label-${project.id}`}>
+                          Assigned Interns
+                        </InputLabel>
+                        <Select
+                          labelId={`assigned-interns-label-${project.id}`}
+                          label="Assigned Interns"
+                          defaultValue=""
+                        >
+                          <MenuItem value="" disabled>
+                            Assigned Interns
+                          </MenuItem>
+                          {interns
+                            .filter((intern) =>
+                              assignedInternIds.includes(intern.id)
+                            )
+                            .map((intern) => (
+                              <MenuItem key={intern.id} value={intern.id}>
+                                {intern.name}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+                    }
+                    sx={{ pb: 0, pt: 2, px: { xs: 2, sm: 3 } }}
+                  />
+                  <CardContent sx={{ pt: 1, pb: 2, px: { xs: 2, sm: 3 } }}>
+                    {project.status === "completed" && (
+                      <Typography
+                        color="success.main"
+                        fontWeight={600}
+                        sx={{ mb: 2 }}
+                      >
+                        This project is completed.
+                      </Typography>
+                    )}
+                    {assignedInternIds.length === 0 ? (
+                      project.status !== "completed" ? (
+                        <Typography color="text.secondary" sx={{ mb: 2 }}>
+                          No tasks assigned.
+                        </Typography>
+                      ) : null
+                    ) : (
+                      <Stack spacing={3}>
+                        {assignedInternIds.map((internId: number) => {
+                          const intern = interns.find(
+                            (i: any) => i.id === internId
+                          );
+                          const internTasks = internTasksMap[internId] || [];
+                          const canUnassign =
+                            internTasks.length === 0 ||
+                            internTasks.every((t) => t.status === "completed");
+                          return (
+                            <Card
+                              key={internId}
                               sx={{
-                                mb: 2,
-                                p: 2.5,
-                                background:
-                                  "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
-                                borderRadius: 3,
-                                boxShadow: 2,
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 1,
+                                boxShadow: 1,
+                                borderRadius: 2,
                                 border: "1px solid #e3f2fd",
-                                transition: "box-shadow 0.2s",
-                                ":hover": { boxShadow: 6 },
-                                borderBottom: "none",
-                                "&:last-child": {
-                                  mb: 0,
-                                },
+                                background: "#fff",
+                                p: { xs: 1.5, sm: 2 },
+                                mb: 1,
                               }}
                             >
-                              <Typography
-                                variant="subtitle1"
-                                fontWeight={700}
-                                color="primary.dark"
-                                gutterBottom
-                              >
-                                {task.title}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mb: 0.5 }}
-                              >
-                                {task.description}
-                              </Typography>
                               <Box
                                 sx={{
                                   display: "flex",
-                                  gap: 2,
-                                  flexWrap: "wrap",
-                                  mt: 0.5,
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  mb: 1,
                                 }}
                               >
-                                <Typography
-                                  variant="caption"
-                                  color="primary"
+                                <Box
                                   sx={{
-                                    fontWeight: 600,
-                                    bgcolor: "#e3f2fd",
-                                    px: 1.2,
-                                    py: 0.5,
-                                    borderRadius: 1,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
                                   }}
                                 >
-                                  Status: {task.status}
-                                </Typography>
-                                <Typography
-                                  variant="caption"
-                                  color="text.secondary"
+                                  <Avatar
+                                    sx={{
+                                      width: 32,
+                                      height: 32,
+                                      bgcolor: "primary.light",
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {intern && intern.name
+                                      ? intern.name[0]
+                                      : "?"}
+                                  </Avatar>
+                                  <Typography
+                                    fontWeight={600}
+                                    color="primary.main"
+                                  >
+                                    {intern
+                                      ? intern.name
+                                      : `Intern ID ${internId}`}
+                                  </Typography>
+                                </Box>
+                                <Button
+                                  variant="contained"
+                                  color="error"
+                                  size="small"
+                                  disabled={!canUnassign}
                                   sx={{
+                                    ml: 2,
                                     fontWeight: 500,
-                                    px: 1.2,
-                                    py: 0.5,
-                                    borderRadius: 1,
-                                    bgcolor: "#f0f0f0",
+                                    borderRadius: 2,
+                                    textTransform: "none",
+                                    minWidth: 90,
+                                  }}
+                                  onClick={async () => {
+                                    if (!canUnassign) {
+                                      alert(
+                                        "Cannot unassign: This intern has in-progress tasks in this project."
+                                      );
+                                      return;
+                                    }
+                                    try {
+                                      await unassignProjectFromInterns({
+                                        projectId: project.id,
+                                        internIds: [internId],
+                                      }).unwrap();
+                                      dispatch(
+                                        showSnackbar({
+                                          message: `Intern '${
+                                            intern ? intern.name : internId
+                                          }' unassigned from project '${
+                                            project.name
+                                          }'`,
+                                          severity: "success",
+                                        })
+                                      );
+                                      await logProjectHistory({
+                                        projectId: project.id,
+                                        payload: {
+                                          action: `Intern '${
+                                            intern ? intern.name : internId
+                                          }' unassigned from project '${
+                                            project.name
+                                          }'`,
+                                        },
+                                      });
+                                    } catch (err) {
+                                      dispatch(
+                                        showSnackbar({
+                                          message:
+                                            "Failed to unassign intern. Please try again.",
+                                          severity: "error",
+                                        })
+                                      );
+                                    }
                                   }}
                                 >
-                                  Date: {task.task_date.split("T")[0]}
-                                </Typography>
+                                  Unassign
+                                </Button>
                               </Box>
-                            </Box>
-                          ))
-                        )}
-                      </Box>
-                    );
-                  })
-                )}
-              </Box>
-            );
-          })
+                              {internTasks.length === 0 ? (
+                                <Typography
+                                  color="text.secondary"
+                                  sx={{ mb: 2 }}
+                                >
+                                  No tasks assigned to this intern.
+                                </Typography>
+                              ) : (
+                                <Stack spacing={2}>
+                                  {internTasks.map((task) => (
+                                    <Card
+                                      key={task.id}
+                                      sx={{
+                                        boxShadow: 0,
+                                        borderRadius: 2,
+                                        border: "1px solid #e3f2fd",
+                                        background:
+                                          "linear-gradient(135deg, #f5faff 60%, #e3f2fd 100%)",
+                                        p: { xs: 1.5, sm: 2 },
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="subtitle1"
+                                        fontWeight={700}
+                                        color="primary.dark"
+                                        gutterBottom
+                                        sx={{ fontSize: { xs: 17, sm: 19 } }}
+                                      >
+                                        {task.title}
+                                      </Typography>
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{
+                                          mb: 0.5,
+                                          fontSize: { xs: 14, sm: 15 },
+                                        }}
+                                      >
+                                        {task.description}
+                                      </Typography>
+                                      <Box
+                                        sx={{
+                                          display: "flex",
+                                          gap: 2,
+                                          flexWrap: "wrap",
+                                          mt: 0.5,
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <Chip
+                                          label={`Status: ${task.status}`}
+                                          color={
+                                            task.status === "completed"
+                                              ? "success"
+                                              : task.status === "in-progress"
+                                              ? "primary"
+                                              : "warning"
+                                          }
+                                          size="small"
+                                          sx={{
+                                            fontWeight: 600,
+                                            mr: 1,
+                                            mb: 0.5,
+                                          }}
+                                        />
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                          sx={{
+                                            fontWeight: 500,
+                                            px: 1.2,
+                                            py: 0.5,
+                                            borderRadius: 1,
+                                            bgcolor: "#f0f0f0",
+                                            fontSize: 13,
+                                          }}
+                                        >
+                                          Date: {task.task_date.split("T")[0]}
+                                        </Typography>
+                                      </Box>
+                                    </Card>
+                                  ))}
+                                </Stack>
+                              )}
+                            </Card>
+                          );
+                        })}
+                      </Stack>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Stack>
         )}
       </Box>
     </Container>

@@ -1,64 +1,87 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { setAuthenticated } from "./authSlice";
-import { useLoginMutation } from "./authApi";
-import * as yup from "yup";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { TextField, Box, Button } from "@mui/material";
+import { useLoginMutation } from "./authApi";
+import { setAuthenticated } from "./authSlice";
+import CustomSnackbar from "../../components/Snackbar";
 
-import { Link, useNavigate } from "react-router-dom";
-import { TextField, Box } from "@mui/material";
-import { Button } from "@mui/material";
-const schema = yup.object({
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-});
-function LoginPage() {
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+const schema = yup
+  .object({
+    email: yup.string().email("Invalid email").required("Email is required"),
+    password: yup
+      .string()
+      .min(6, "Password must be at least 6 characters")
+      .required("Password is required"),
+  })
+  .required();
+
+const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  // const [email, setEmail] = useState("");
-  // const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const dispatch = useDispatch();
-  const [login] = useLoginMutation();
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setError("");
-  //   try {
-  //     const res = await login({ email, password }).unwrap();
-  //     dispatch(setToken(res.token));
-  //     navigate("/");
-  //   } catch (err: any) {
-  //     setError(err.data?.error || "Login failed");
-  //   }
-  // };
-
+  const [login, { isLoading: loginLoading }] = useLoginMutation();
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "warning" | "info";
+  }>({
+    open: false,
+    message: "",
+    severity: "info",
+  });
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({
+  } = useForm<LoginFormData>({
     resolver: yupResolver(schema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
-  const handleLogin = async (data: { email: string; password: string }) => {
-    setError("");
+
+  const handleLogin = async (data: LoginFormData) => {
+    console.log("handleLogin called with data:", data);
+    setSnackbar({ open: false, message: "", severity: "info" });
     try {
       const res = await login(data).unwrap();
+      console.log("Login response:", res);
       dispatch(setAuthenticated());
-      navigate("/");
+      setSnackbar({
+        open: true,
+        message: "Login successful!",
+        severity: "success",
+      });
+      setTimeout(() => {
+        console.log("Navigating to /");
+        navigate("/", { replace: true });
+      }, 1000);
     } catch (err: any) {
-      setError(err.data?.error || "Login failed");
+      console.error("Login error:", err);
+      setSnackbar({
+        open: true,
+        message: err.data?.error || "Login failed",
+        severity: "error",
+      });
+      reset();
     }
-    reset();
   };
+
+  const handleSnackbarClose = () => {
+    console.log("Closing Snackbar");
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
   return (
     <Box
       sx={{
@@ -66,13 +89,12 @@ function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        // mx: 2,
       }}
     >
       <Box
         sx={{
           background: "#fff",
-          p: { xs: 2, sm: 4 }, 
+          p: { xs: 2, sm: 4 },
           borderRadius: 2,
           boxShadow: "0 4px 32px rgba(0,0,0,0.10)",
           minWidth: 340,
@@ -103,64 +125,31 @@ function LoginPage() {
             error={!!errors.email}
             helperText={errors.email?.message}
             fullWidth
-            // sx={{
-            //   padding: 12,
-            //   borderRadius: 8,
-            //   border: "1px solid #d1d5db",
-            //   fontSize: 16,
-            //   outline: "none",
-            //   transition: "border 0.2s",
-            // }}
           />
           <TextField
-            {...register("password")}
             label="Password"
             type="password"
+            {...register("password")}
             error={!!errors.password}
             helperText={errors.password?.message}
             fullWidth
-            // sx={{
-            //   padding: 12,
-            //   borderRadius: 8,
-            //   border: "1px solid #d1d5db",
-            //   fontSize: 16,
-            //   outline: "none",
-            //   transition: "border 0.2s",
-            // }}
-            // required
           />
-
           <Button
             type="submit"
             variant="contained"
             color="primary"
-            // sx={{
-            //   padding: 12,
-            //   borderRadius: 8,
-            //   background: "linear-gradient(90deg, #2563eb 60%, #60a5fa 100%)",
-            //   color: "#fff",
-            //   fontWeight: 700,
-            //   fontSize: 16,
-            //   border: "none",
-            //   cursor: "pointer",
-            //   boxShadow: "0 2px 8px rgba(37,99,235,0.10)",
-            // }}
+            disabled={loginLoading}
           >
-            Login
+            {loginLoading ? "Logging in..." : "Login"}
           </Button>
         </form>
-        {error && (
-          <Box
-            sx={{
-              color: "red",
-              mt: 2,
-              textAlign: "center",
-              fontWeight: 500,
-            }}
-          >
-            {error}
-          </Box>
-        )}
+        <CustomSnackbar
+          open={snackbar.open}
+          onClose={handleSnackbarClose}
+          message={snackbar.message}
+          severity={snackbar.severity}
+          autoHideDuration={6000}
+        />
         <Box sx={{ mt: 2, textAlign: "center", fontSize: 15 }}>
           Don't have an account?{" "}
           <Link
@@ -173,6 +162,6 @@ function LoginPage() {
       </Box>
     </Box>
   );
-}
+};
 
 export default LoginPage;

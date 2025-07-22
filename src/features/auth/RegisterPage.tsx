@@ -1,42 +1,79 @@
 import { useState } from "react";
-import { useRegisterMutation } from "./authApi";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Button, TextField, Box } from "@mui/material";
+import { TextField, Box, Button } from "@mui/material";
+import { useRegisterMutation } from "./authApi";
+import CustomSnackbar from "../../components/Snackbar";
 
-const schema = yup.object().shape({
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-});
+interface RegisterFormData {
+  email: string;
+  password: string;
+}
 
-export default function RegisterPage() {
+const schema = yup
+  .object({
+    email: yup.string().email("Invalid email").required("Email is required"),
+    password: yup
+      .string()
+      .min(6, "Password must be at least 6 characters")
+      .required("Password is required"),
+  })
+  .required();
+
+const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [registerUser, { isLoading: registerLoading }] = useRegisterMutation();
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "warning" | "info";
+  }>({
+    open: false,
+    message: "",
+    severity: "info",
+  });
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
-  } = useForm({
+  } = useForm<RegisterFormData>({
     resolver: yupResolver(schema),
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [registerUser] = useRegisterMutation();
-  const navigate = useNavigate();
-  const onSubmit = async (data: { email: string; password: string }) => {
-    setError("");
-    setSuccess(false);
+
+  const onSubmit = async (data: RegisterFormData) => {
+    console.log("Register onSubmit called with data:", data);
+    setSnackbar({ open: false, message: "", severity: "info" });
     try {
-      await registerUser(data).unwrap();
-      setSuccess(true);
-      navigate("/login");
+      const res = await registerUser(data).unwrap();
+      console.log("Register response:", res);
+      setSnackbar({
+        open: true,
+        message: "Registration successful! Please log in.",
+        severity: "success",
+      });
+      setTimeout(() => {
+        console.log("Navigating to /login");
+        navigate("/login", { replace: true });
+      }, 1500);
     } catch (err: any) {
-      setError(err.data?.error || "Registration failed");
+      console.error("Register error:", err);
+      setSnackbar({
+        open: true,
+        message: err.data?.error || "Registration failed",
+        severity: "error",
+      });
+      reset();
     }
   };
+
+  const handleSnackbarClose = () => {
+    console.log("Closing Snackbar");
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
 
   return (
     <Box
@@ -45,7 +82,6 @@ export default function RegisterPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        // background: "linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%)",
       }}
     >
       <Box
@@ -84,41 +120,28 @@ export default function RegisterPage() {
           />
           <TextField
             label="Password"
-            {...register("password")}
             type="password"
+            {...register("password")}
             error={!!errors.password}
             helperText={errors.password?.message}
             fullWidth
           />
-
-          <Button type="submit" variant="contained" color="primary">
-            Register
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={registerLoading}
+          >
+            {registerLoading ? "Registering..." : "Register"}
           </Button>
         </form>
-        {success && (
-          <div
-            style={{
-              color: "green",
-              marginTop: 18,
-              textAlign: "center",
-              fontWeight: 500,
-            }}
-          >
-            Registration successful!
-          </div>
-        )}
-        {error && (
-          <div
-            style={{
-              color: "red",
-              marginTop: 18,
-              textAlign: "center",
-              fontWeight: 500,
-            }}
-          >
-            {error}
-          </div>
-        )}
+        <CustomSnackbar
+          open={snackbar.open}
+          onClose={handleSnackbarClose}
+          message={snackbar.message}
+          severity={snackbar.severity}
+          autoHideDuration={6000}
+        />
         <Box sx={{ mt: 2, textAlign: "center", fontSize: 15 }}>
           Already have an account?{" "}
           <Link
@@ -131,4 +154,6 @@ export default function RegisterPage() {
       </Box>
     </Box>
   );
-}
+};
+
+export default RegisterPage;
