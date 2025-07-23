@@ -14,6 +14,7 @@ import RegisterPage from "./features/auth/RegisterPage";
 import CustomSnackbar from "./components/Snackbar";
 import { useSelector, useDispatch } from "react-redux";
 import { hideSnackbar } from "./features/auth/authSlice";
+import Profile from "./features/auth/UserProfile";
 
 const GlobalSnackbar: React.FC = () => {
   const dispatch = useDispatch();
@@ -69,6 +70,7 @@ const App: React.FC = () => {
             <Route path="interns/:id/tasks" element={<TasksPage />} />
             <Route path="projects" element={<ProjectsPage />} />
             <Route path="tasks" element={<TasksListPage />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
         </Routes>
         <GlobalSnackbar />

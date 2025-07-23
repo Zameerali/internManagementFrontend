@@ -1,7 +1,10 @@
 import React from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { useLogoutMutation } from "../features/auth/authApi";
+import {
+  useLogoutMutation,
+  useGetMyProfileQuery,
+} from "../features/auth/authApi";
 import { logout } from "../features/auth/authSlice";
 import {
   AppBar,
@@ -13,8 +16,11 @@ import {
   Stack,
   IconButton,
   Collapse,
+  Avatar,
   useMediaQuery,
   useTheme,
+  Menu,
+  MenuItem
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 
@@ -32,6 +38,7 @@ export default function DashboardLayout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [logoutApi] = useLogoutMutation();
+  const { data: profile } = useGetMyProfileQuery();
 
   const handleLogout = async () => {
     try {
@@ -40,6 +47,15 @@ export default function DashboardLayout() {
     dispatch(logout());
     navigate("/login");
   };
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
 
   return (
     <Box
@@ -59,9 +75,9 @@ export default function DashboardLayout() {
           sx={{
             width: "100%",
             maxWidth: { xs: "100%", sm: "95%", md: "90%", lg: "1200px" },
-            mx: "0 auto",
+            mx: "auto",
             display: "flex",
-            justifyContent: "space-between",
+            // justifyContent: "space-between",
             alignItems: "center",
             px: { xs: 2, sm: 4 },
             py: { xs: 1, sm: 1.5 },
@@ -79,10 +95,12 @@ export default function DashboardLayout() {
             Intern Dashboard
           </Typography>
 
-          <Box
-            sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}
-          >
-            <Stack direction="row" spacing={3}>
+          <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
+            <Stack
+              direction="row"
+              spacing={3}
+              sx={{ display: { xs: "none", md: "flex" } }}
+            >
               {navItems.map((item) => (
                 <Button
                   key={item.path}
@@ -105,26 +123,72 @@ export default function DashboardLayout() {
                   {item.label}
                 </Button>
               ))}
-              <Button
-                onClick={handleLogout}
-                color="secondary"
-                variant="contained"
-                sx={{
-                  ml: 2,
-                  px: 2.5,
-                  py: 1,
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  bgcolor: "#ef4444",
-                  color: "#fff",
-                  boxShadow: 2,
-                  fontSize: "1rem",
-                  "&:hover": { bgcolor: "#dc2626" },
+            </Stack>
+            {/* <Button
+              onClick={handleLogout}
+              color="secondary"
+              variant="contained"
+              sx={{
+                ml: 2,
+                px: 2.5,
+                py: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                bgcolor: "#ef4444",
+                color: "#fff",
+                boxShadow: 2,
+                fontSize: "1rem",
+                "&:hover": { bgcolor: "#dc2626" },
+                display: { xs: "none", md: "inline-flex" },
+              }}
+            >
+              Logout
+            </Button> */}
+            <IconButton
+              onClick={handleAvatarClick}
+              sx={{
+                ml: 2,
+                p: 0.1,
+                bgcolor: "rgba(255,255,255,0.12)",
+                border: "2px solid #fff",
+              }}
+            >
+              <Avatar
+                src={profile?.pic_url}
+                alt={profile?.first_name || "U"}
+                sx={{ width: 40, height: 40, bgcolor: "#2563eb" }}
+              />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+            >
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  navigate("/profile");
+                }}
+              >
+                Profile
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  handleLogout();
                 }}
               >
                 Logout
-              </Button>
-            </Stack>
+              </MenuItem>
+            </Menu>
           </Box>
 
           <Box sx={{ display: { xs: "flex", md: "none" } }}>
@@ -171,30 +235,6 @@ export default function DashboardLayout() {
                   {item.label}
                 </Button>
               ))}
-              <Button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  handleLogout();
-                }}
-                color="secondary"
-                variant="contained"
-                fullWidth
-                sx={{
-                  mt: 1,
-                  textAlign: "left",
-                  fontWeight: 600,
-                  borderRadius: 2,
-                  fontSize: "1rem",
-                  py: 1.2,
-                  px: 2,
-                  bgcolor: "#ef4444",
-                  color: "#fff",
-                  boxShadow: 2,
-                  "&:hover": { bgcolor: "#dc2626" },
-                }}
-              >
-                Logout
-              </Button>
             </Stack>
           </Box>
         </Collapse>

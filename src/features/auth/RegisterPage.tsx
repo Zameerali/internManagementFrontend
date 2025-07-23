@@ -3,13 +3,22 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { TextField, Box, Button } from "@mui/material";
-import { useRegisterMutation } from "./authApi";
+import { TextField, Box, Button, Avatar, Typography } from "@mui/material";
+import {
+  useRegisterMutation,
+  useCheckEmailExistsQuery,
+  authApi,
+} from "./authApi";
 import CustomSnackbar from "../../components/Snackbar";
 
 interface RegisterFormData {
   email: string;
   password: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  bio: string;
+  pic_url: string;
 }
 
 const schema = yup
@@ -19,61 +28,77 @@ const schema = yup
       .string()
       .min(6, "Password must be at least 6 characters")
       .required("Password is required"),
+    first_name: yup.string().required("First name is required"),
+    last_name: yup.string().required("Last name is required"),
+    phone: yup
+      .string()
+      .transform((value) => value.replace(/\D/g, ""))
+      .required("Phone number is required"),
+    bio: yup.string().required("Bio is required"),
+    pic_url: yup.string().required("Profile picture is required"),
   })
   .required();
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [registerUser, { isLoading: registerLoading }] = useRegisterMutation();
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error" | "warning" | "info";
-  }>({
+  const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "info",
+    severity: "info" as "success" | "error" | "warning" | "info",
   });
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const {
     register,
     handleSubmit,
+    setValue,
     reset,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: yupResolver(schema),
   });
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setValue("pic_url", reader.result as string);
+      setAvatarPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
-    console.log("Register onSubmit called with data:", data);
     setSnackbar({ open: false, message: "", severity: "info" });
+    
     try {
       const res = await registerUser(data).unwrap();
-      console.log("Register response:", res);
       setSnackbar({
         open: true,
         message: "Registration successful! Please log in.",
         severity: "success",
       });
       setTimeout(() => {
-        console.log("Navigating to /login");
         navigate("/login", { replace: true });
       }, 1500);
     } catch (err: any) {
-      console.error("Register error:", err);
       setSnackbar({
         open: true,
         message: err.data?.error || "Registration failed",
         severity: "error",
       });
-      reset();
+      
+      // reset();
+      // setAvatarPreview(undefined);
     }
   };
 
   const handleSnackbarClose = () => {
-    console.log("Closing Snackbar");
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
-
 
   return (
     <Box
@@ -95,22 +120,49 @@ const RegisterPage: React.FC = () => {
           width: "100%",
         }}
       >
-        <h2
-          style={{
-            marginBottom: 28,
-            textAlign: "center",
-            fontWeight: 700,
-            fontSize: 28,
-            color: "#2563eb",
-            letterSpacing: 1,
-          }}
+        <Typography
+          variant="h5"
+          mb={2}
+          align="center"
+          fontWeight={700}
+          color="primary"
         >
           Create Account
-        </h2>
+        </Typography>
         <form
           onSubmit={handleSubmit(onSubmit)}
           style={{ display: "flex", flexDirection: "column", gap: 18 }}
         >
+          <TextField
+            label="First Name"
+            {...register("first_name")}
+            error={!!errors.first_name}
+            helperText={errors.first_name?.message}
+            fullWidth
+          />
+          <TextField
+            label="Last Name"
+            {...register("last_name")}
+            error={!!errors.last_name}
+            helperText={errors.last_name?.message}
+            fullWidth
+          />
+          <TextField
+            label="Phone"
+            {...register("phone")}
+            error={!!errors.phone}
+            helperText={errors.phone?.message}
+            fullWidth
+          />
+          <TextField
+            label="Bio"
+            {...register("bio")}
+            error={!!errors.bio}
+            helperText={errors.bio?.message}
+            fullWidth
+            multiline
+            minRows={2}
+          />
           <TextField
             label="Email"
             {...register("email")}
@@ -126,6 +178,18 @@ const RegisterPage: React.FC = () => {
             helperText={errors.password?.message}
             fullWidth
           />
+          <Box display="flex" alignItems="center" gap={2} mt={1} mb={1}>
+            <Avatar src={avatarPreview} sx={{ width: 56, height: 56 }} />
+            <Button variant="outlined" component="label">
+              Upload Image
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleImageChange}
+              />
+            </Button>
+          </Box>
           <Button
             type="submit"
             variant="contained"
