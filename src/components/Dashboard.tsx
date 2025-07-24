@@ -20,7 +20,7 @@ import {
   useMediaQuery,
   useTheme,
   Menu,
-  MenuItem
+  MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 
@@ -56,7 +56,6 @@ export default function DashboardLayout() {
     setAnchorEl(null);
   };
 
-
   return (
     <Box
       sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "background.default" }}
@@ -74,32 +73,43 @@ export default function DashboardLayout() {
         <Toolbar
           sx={{
             width: "100%",
-            maxWidth: { xs: "100%", sm: "95%", md: "90%", lg: "1200px" },
+            maxWidth: "lg",
             mx: "auto",
+            px: { xs: 1, sm: 1.5, md: 2 },
+            py: { xs: 1, sm: 1.25 },
             display: "flex",
-            // justifyContent: "space-between",
             alignItems: "center",
-            px: { xs: 2, sm: 4 },
-            py: { xs: 1, sm: 1.5 },
+            gap: { xs: 1, sm: 1.5 },
           }}
         >
-          <Typography
-            variant="h5"
+          <Box sx={{ flexShrink: 0 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                letterSpacing: 1,
+                color: "#fff",
+                textShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                fontSize: { xs: "1.5rem", sm: "1.75rem" },
+              }}
+            >
+              Intern Dashboard
+            </Typography>
+          </Box>
+
+          <Box
             sx={{
-              fontWeight: 700,
-              letterSpacing: 2,
-              color: "#fff",
-              textShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              flexGrow: 1,
+              gap: { xs: 0.75, sm: 1 },
             }}
           >
-            Intern Dashboard
-          </Typography>
-
-          <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
             <Stack
               direction="row"
-              spacing={3}
-              sx={{ display: { xs: "none", md: "flex" } }}
+              spacing={1}
+              sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}
             >
               {navItems.map((item) => (
                 <Button
@@ -108,15 +118,18 @@ export default function DashboardLayout() {
                   to={item.path}
                   color="inherit"
                   sx={{
-                    px: 2.5,
-                    py: 1,
+                    px: { xs: 2, sm: 2.5 },
+                    py: 0.75,
+                    minHeight: 40,
                     borderRadius: 2,
                     fontWeight: 500,
                     bgcolor: "rgba(255,255,255,0.08)",
-                    fontSize: "1rem",
-                    boxShadow: 2,
+                    fontSize: { xs: "0.9rem", sm: "1rem" },
+                    boxShadow: 1,
+                    color: "#fff",
                     "&:hover": {
                       bgcolor: "rgba(255,255,255,0.18)",
+                      color: "#fff",
                     },
                   }}
                 >
@@ -124,39 +137,44 @@ export default function DashboardLayout() {
                 </Button>
               ))}
             </Stack>
-            {/* <Button
-              onClick={handleLogout}
-              color="secondary"
-              variant="contained"
-              sx={{
-                ml: 2,
-                px: 2.5,
-                py: 1,
-                borderRadius: 2,
-                fontWeight: 600,
-                bgcolor: "#ef4444",
-                color: "#fff",
-                boxShadow: 2,
-                fontSize: "1rem",
-                "&:hover": { bgcolor: "#dc2626" },
-                display: { xs: "none", md: "inline-flex" },
-              }}
-            >
-              Logout
-            </Button> */}
             <IconButton
               onClick={handleAvatarClick}
               sx={{
-                ml: 2,
-                p: 0.1,
-                bgcolor: "rgba(255,255,255,0.12)",
-                border: "2px solid #fff",
+                p: 0.75,
+                minHeight: 40,
+                minWidth: { xs: 48, sm: 120 },
+                // bgcolor: "rgba(255,255,255,0.12)",
+                // border: "2px solid #fff",
+                borderRadius: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
               }}
             >
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  textDecoration: "underline",
+                  color: "#fff",
+                  fontWeight: 500,
+                  display: { xs: "none", sm: "block" },
+                  maxWidth: 80,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                }}
+              >
+                {profile?.first_name}
+              </Typography>
               <Avatar
-                src={profile?.pic_url}
+                src={profile?.image_url}
                 alt={profile?.first_name || "U"}
-                sx={{ width: 40, height: 40, bgcolor: "#2563eb" }}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  bgcolor: "#2563eb",
+                }}
               />
             </IconButton>
             <Menu
@@ -177,6 +195,7 @@ export default function DashboardLayout() {
                   handleClose();
                   navigate("/profile");
                 }}
+                sx={{ fontSize: "0.9rem" }}
               >
                 Profile
               </MenuItem>
@@ -185,20 +204,24 @@ export default function DashboardLayout() {
                   handleClose();
                   handleLogout();
                 }}
+                sx={{ fontSize: "0.9rem" }}
               >
                 Logout
               </MenuItem>
             </Menu>
-          </Box>
-
-          <Box sx={{ display: { xs: "flex", md: "none" } }}>
             <IconButton
               color="inherit"
               onClick={toggleDrawer}
-              sx={{ p: 1, mx: 3 }}
+              sx={{
+                display: { xs: "flex", md: "none" },
+                p: 0.75,
+                minHeight: 40,
+                minWidth: 40,
+                ml: 0.5,
+              }}
               aria-label="open drawer"
             >
-              <MenuIcon sx={{ fontSize: 30 }} />
+              <MenuIcon sx={{ fontSize: 24 }} />
             </IconButton>
           </Box>
         </Toolbar>
@@ -206,14 +229,14 @@ export default function DashboardLayout() {
         <Collapse in={drawerOpen} timeout="auto" unmountOnExit>
           <Box
             sx={{
-              px: 2,
+              px: 1.5,
               pt: 1,
-              pb: 2,
+              pb: 1.5,
               bgcolor: "background.paper",
               borderTop: "1px solid rgba(255,255,255,0.2)",
             }}
           >
-            <Stack spacing={1.5}>
+            <Stack spacing={1}>
               {navItems.map((item) => (
                 <Button
                   key={item.path}
@@ -227,9 +250,10 @@ export default function DashboardLayout() {
                     textAlign: "left",
                     fontWeight: 500,
                     borderRadius: 2,
-                    fontSize: "1rem",
-                    py: 1.2,
+                    fontSize: { xs: "0.9rem", sm: "1rem" },
+                    py: 0.75,
                     px: 2,
+                    minHeight: 40,
                   }}
                 >
                   {item.label}
@@ -243,26 +267,21 @@ export default function DashboardLayout() {
       <Container
         maxWidth="xl"
         sx={{
-          pt: { xs: 12, sm: 14 },
-          pb: { xs: 4, sm: 6 },
+          pt: { xs: 9, sm: 10, md: 11 },
+          pb: { xs: 2, sm: 3 },
           minHeight: "calc(100vh - 64px)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          px: { xs: 0, sm: 1 },
         }}
       >
         <Box
           sx={{
             width: "100%",
-            maxWidth: {
-              xs: "98vw",
-              sm: "95vw",
-              md: "90vw",
-              lg: "1200px",
-              xl: "1400px",
-            },
-            mx: "auto",
-            px: { xs: 1, sm: 2, md: 4 },
+            maxWidth: "100%",
+            mx: 0,
+            px: { xs: 0, sm: 1, md: 1.5 },
           }}
         >
           <Outlet />

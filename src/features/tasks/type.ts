@@ -5,6 +5,7 @@ export interface Task {
   title: string;
   description: string;
   task_date: string;
+  deadline?: string; 
   status: string;
 }
 
@@ -14,5 +15,6 @@ export interface NewTask {
   title: string;
   description: string;
   task_date: string;
+  deadline?: string;
   status: string;
 }

@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux";
 const schema = yup.object({
   title: yup.string().required("Title is required"),
   description: yup.string().required("Description is required"),
+  deadline: yup.string().required("Deadline is required"), 
 });
 interface AddTaskProps {
   internId: number;
@@ -31,10 +32,11 @@ const AddTask: React.FC<AddTaskProps> = ({ internId, projectId }) => {
     defaultValues: {
       title: "",
       description: "",
+      deadline: "",
     },
   });
 
-  const onSubmit = async (data: { title: string; description: string }) => {
+  const onSubmit = async (data: { title: string; description: string; deadline: string }) => {
     const task_date = new Date().toISOString().split("T")[0];
     if (!internId || !projectId) {
       dispatch(
@@ -52,6 +54,7 @@ const AddTask: React.FC<AddTaskProps> = ({ internId, projectId }) => {
       intern_id: internId,
       project_id: projectId,
       task_date,
+      deadline: data.deadline,
     };
     try {
       await createTask({ task: payload, internId });
@@ -99,6 +102,16 @@ const AddTask: React.FC<AddTaskProps> = ({ internId, projectId }) => {
           {...register("description")}
           error={!!errors.description}
           helperText={errors.description?.message}
+          fullWidth
+        />
+        <TextField
+          sx={{ marginBottom: "1rem" }}
+          label="Deadline"
+          type="date"
+          {...register("deadline")}
+          error={!!errors.deadline}
+          helperText={errors.deadline?.message}
+          InputLabelProps={{ shrink: true }}
           fullWidth
         />
         <Button type="submit" variant="contained" color="primary">

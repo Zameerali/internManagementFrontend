@@ -18,7 +18,7 @@ interface RegisterFormData {
   last_name: string;
   phone: string;
   bio: string;
-  pic_url: string;
+  image_url: string;
 }
 
 const schema = yup
@@ -35,7 +35,7 @@ const schema = yup
       .transform((value) => value.replace(/\D/g, ""))
       .required("Phone number is required"),
     bio: yup.string().required("Bio is required"),
-    pic_url: yup.string().required("Profile picture is required"),
+    image_url: yup.string().required("Profile picture is required"),
   })
   .required();
 
@@ -65,7 +65,7 @@ const RegisterPage: React.FC = () => {
     if (!file) return;
     const reader = new FileReader();
     reader.onloadend = () => {
-      setValue("pic_url", reader.result as string);
+      setValue("image_url", reader.result as string);
       setAvatarPreview(reader.result as string);
     };
     reader.readAsDataURL(file);

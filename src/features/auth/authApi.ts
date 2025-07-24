@@ -25,7 +25,7 @@ export const authApi = createApi({
         last_name: string;
         phone: string;
         bio: string;
-        pic_url: string;
+        image_url: string;
       }
     >({
       query: (body) => ({

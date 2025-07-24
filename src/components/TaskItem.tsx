@@ -100,6 +100,10 @@ export default function TaskItem({ task, onStatusChange }: Props) {
         <Typography variant="body2" color="text.secondary" mb={2}>
           <b>Project:</b> {projectName}
         </Typography>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          <b>Deadline:</b>{" "}
+          {task.deadline ? new Date(task.deadline).toLocaleDateString() : "-"}
+        </Typography>
         <Box display="flex" alignItems="center" gap={2}>
           <Select
             value={status}

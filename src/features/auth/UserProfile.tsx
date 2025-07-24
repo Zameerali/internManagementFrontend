@@ -22,7 +22,7 @@ type ProfileForm = {
   last_name: string;
   phone: string;
   bio: string;
-  pic_url: string;
+  image_url: string;
 };
 
 export default function Profile() {
@@ -51,14 +51,14 @@ export default function Profile() {
     }
   }, [profile, reset]);
 
-  const avatarPreview = watch("pic_url");
+  const avatarPreview = watch("image_url");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onloadend = () => {
-      setValue("pic_url", reader.result as string, { shouldDirty: true });
+      setValue("image_url", reader.result as string, { shouldDirty: true });
     };
     reader.readAsDataURL(file);
   };
@@ -112,7 +112,7 @@ export default function Profile() {
           src={
             avatarPreview && avatarPreview.startsWith("data:image/")
               ? avatarPreview
-              : profile.pic_url || undefined
+              : profile.image_url || undefined
           }
           alt={profile?.first_name?.[0] || "U"}
           sx={{
@@ -123,7 +123,7 @@ export default function Profile() {
             mb: 1,
           }}
         >
-          {!avatarPreview && !profile?.pic_url?.startsWith("data:image/")
+          {!avatarPreview && !profile?.image_url?.startsWith("data:image/")
             ? profile?.first_name?.[0] || "U"
             : null}
         </Avatar>
