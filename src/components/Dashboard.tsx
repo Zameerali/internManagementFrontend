@@ -72,17 +72,16 @@ export default function DashboardLayout() {
       >
         <Toolbar
           sx={{
-            width: "100%",
-            maxWidth: "lg",
-            mx: "auto",
+            width: "100%", 
             px: { xs: 1, sm: 1.5, md: 2 },
             py: { xs: 1, sm: 1.25 },
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between", 
             gap: { xs: 1, sm: 1.5 },
           }}
         >
-          <Box sx={{ flexShrink: 0 }}>
+          <Box sx={{ flexShrink: 0, mr: "auto" }}>
             <Typography
               variant="h5"
               sx={{
@@ -102,8 +101,9 @@ export default function DashboardLayout() {
               display: "flex",
               alignItems: "center",
               justifyContent: "flex-end",
-              flexGrow: 1,
               gap: { xs: 0.75, sm: 1 },
+              ml: "auto",
+              px: { xs: 1, sm: 2, md: 4, lg: 5 },
             }}
           >
             <Stack
@@ -143,8 +143,6 @@ export default function DashboardLayout() {
                 p: 0.75,
                 minHeight: 40,
                 minWidth: { xs: 48, sm: 120 },
-                // bgcolor: "rgba(255,255,255,0.12)",
-                // border: "2px solid #fff",
                 borderRadius: 2,
                 display: "flex",
                 alignItems: "center",
