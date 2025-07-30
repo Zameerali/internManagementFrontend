@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ baseUrl: "/api/auth", credentials: "include" }),
-  tagTypes: ["Profile"], 
+  tagTypes: ["Profile"],
   endpoints: (builder) => ({
     login: builder.mutation<
       { message: string },
@@ -14,13 +14,14 @@ export const authApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Profile"], 
+      invalidatesTags: ["Profile"],
     }),
     register: builder.mutation<
-      { id: number; email: string },
+      { id: number; email: string; role: string },
       {
         email: string;
         password: string;
+        role: string; 
         first_name: string;
         last_name: string;
         phone: string;
@@ -33,25 +34,27 @@ export const authApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Profile"], 
+      invalidatesTags: ["Profile"],
     }),
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: "/logout",
         method: "POST",
       }),
-      invalidatesTags: ["Profile"], 
+      invalidatesTags: ["Profile"],
     }),
-    checkAuth: builder.query<{ isAuthenticated: boolean }, void>({
-      query: () => "/check-auth",
-    }),
+    checkAuth: builder.query<{ isAuthenticated: boolean; role?: string }, void>(
+      {
+        query: () => "/check-auth",
+      }
+    ),
     getMyProfile: builder.query<any, void>({
       query: () => ({
         url: "/profile/me",
         method: "GET",
         credentials: "include",
       }),
-      providesTags: ["Profile"], 
+      providesTags: ["Profile"],
     }),
     updateMyProfile: builder.mutation<any, Partial<any>>({
       query: (body) => ({
@@ -60,11 +63,15 @@ export const authApi = createApi({
         body,
         credentials: "include",
       }),
-      invalidatesTags: ["Profile"], 
+      invalidatesTags: ["Profile"],
     }),
-    checkEmailExists: builder.query<{ exists: boolean }, { email: string }>({
+    
+    checkInternEmailExists: builder.query<
+      { exists: boolean; isLinked: boolean },
+      { email: string }
+    >({
       query: ({ email }) => ({
-        url: '/checkEmail',
+        url: "/check-intern-email",
         method: "GET",
         params: { email },
       }),
@@ -79,5 +86,5 @@ export const {
   useCheckAuthQuery,
   useGetMyProfileQuery,
   useUpdateMyProfileMutation,
-  useCheckEmailExistsQuery,
+  useCheckInternEmailExistsQuery, 
 } = authApi;

@@ -26,11 +26,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 
 export default function InternDashboardLayout() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
-  const navItems = [
-    { label: "My Profile", path: "/intern/profile" },
-    { label: "My Projects", path: "/intern/projects" },
-    { label: "My Tasks", path: "/intern/tasks" },
-  ];
+  const navItems = [{ label: "My Tasks", path: "/intern/tasks" }];
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const toggleDrawer = () => setDrawerOpen((prev) => !prev);

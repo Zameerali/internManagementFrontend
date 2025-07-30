@@ -4,8 +4,10 @@ import { CircularProgress } from "@mui/material";
 
 export default function PrivateRoute({
   children,
+  allowedRoles,
 }: {
   children: React.ReactNode;
+  allowedRoles?: string[];
 }) {
   const { data, isLoading, isError, error } = useCheckAuthQuery(undefined, {
     refetchOnMountOrArgChange: true,
@@ -21,8 +23,14 @@ export default function PrivateRoute({
     );
   }
 
-  if (isError || (data && !data.isAuthenticated)) {
+  if (isError || !data?.isAuthenticated) {
     console.error("PrivateRoute auth error:", error);
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && (!data?.role || !allowedRoles.includes(data.role))) {
+    if (data?.role === "admin") return <Navigate to="/" replace />;
+    if (data?.role === "intern") return <Navigate to="/intern/tasks" replace />;
     return <Navigate to="/login" replace />;
   }
 

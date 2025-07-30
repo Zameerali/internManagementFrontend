@@ -13,7 +13,9 @@ export const projectsApi = createApi({
       query: () => "/interns/project",
       providesTags: ["Projects"],
     }),
-
+    getMyProjects: builder.query<Project[], void>({
+      query: () => "/projects/my",
+    }),
     addProject: builder.mutation<Project, { name: string }>({
       query: ({ name }) => ({
         url: "/interns/project",
@@ -97,6 +99,7 @@ export const projectsApi = createApi({
 
 export const {
   useGetAllProjectsQuery,
+  useGetMyProjectsQuery,
   useAddProjectMutation,
   useAssignProjectToInternsMutation,
   useUnassignProjectFromInternsMutation,

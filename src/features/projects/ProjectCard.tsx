@@ -22,7 +22,6 @@ export function ProjectCard({
   selectedInterns,
   handleInternsChange,
   handleAssign,
-  // handleUnAssign, // Unassign logic removed
   currentStatus,
   historyOpen,
   selectedProjectId,

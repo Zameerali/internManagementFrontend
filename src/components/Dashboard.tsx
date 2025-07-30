@@ -72,12 +72,12 @@ export default function DashboardLayout() {
       >
         <Toolbar
           sx={{
-            width: "100%", 
+            width: "100%",
             px: { xs: 1, sm: 1.5, md: 2 },
             py: { xs: 1, sm: 1.25 },
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between", 
+            justifyContent: "space-between",
             gap: { xs: 1, sm: 1.5 },
           }}
         >
@@ -92,7 +92,7 @@ export default function DashboardLayout() {
                 fontSize: { xs: "1.5rem", sm: "1.75rem" },
               }}
             >
-              Intern Dashboard
+              Admin Dashboard
             </Typography>
           </Box>
 

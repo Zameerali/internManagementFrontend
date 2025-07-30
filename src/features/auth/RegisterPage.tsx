@@ -1,12 +1,20 @@
+import React from "react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { TextField, Box, Button, Avatar, Typography } from "@mui/material";
+import {
+  TextField,
+  Box,
+  Button,
+  Avatar,
+  Typography,
+  Alert,
+} from "@mui/material";
 import {
   useRegisterMutation,
-  useCheckEmailExistsQuery,
+  useCheckInternEmailExistsQuery,
   authApi,
 } from "./authApi";
 import CustomSnackbar from "../../components/Snackbar";
@@ -48,10 +56,15 @@ const RegisterPage: React.FC = () => {
     severity: "info" as "success" | "error" | "warning" | "info",
   });
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
+  const [emailValidationMessage, setEmailValidationMessage] =
+    useState<string>("");
+  const [canRegister, setCanRegister] = useState<boolean>(true);
+
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     reset,
     setError,
     clearErrors,
@@ -59,6 +72,45 @@ const RegisterPage: React.FC = () => {
   } = useForm<RegisterFormData>({
     resolver: yupResolver(schema),
   });
+
+  const watchedEmail = watch("email");
+
+  const { data: internCheck, isLoading: internCheckLoading } =
+    useCheckInternEmailExistsQuery(
+      { email: watchedEmail },
+      {
+        skip: !watchedEmail || !watchedEmail.includes("@"),
+      }
+    );
+
+  React.useEffect(() => {
+    if (watchedEmail && watchedEmail.includes("@")) {
+      if (internCheckLoading) {
+        setEmailValidationMessage("Checking email...");
+        setCanRegister(false);
+      } else if (internCheck) {
+        if (!internCheck.exists) {
+          setEmailValidationMessage(
+            "Email not found in intern records. Please contact the administrator to be added first."
+          );
+          setCanRegister(false);
+        } else if (internCheck.isLinked) {
+          setEmailValidationMessage(
+            "This intern email is already registered. Please contact administrator."
+          );
+          setCanRegister(false);
+        } else {
+          setEmailValidationMessage(
+            "Email verified! You can proceed with registration."
+          );
+          setCanRegister(true);
+        }
+      }
+    } else {
+      setEmailValidationMessage("");
+      setCanRegister(true); 
+    }
+  }, [internCheck, watchedEmail, internCheckLoading]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,9 +125,19 @@ const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
     setSnackbar({ open: false, message: "", severity: "info" });
-    
+
+    if (watchedEmail && watchedEmail.includes("@") && !canRegister) {
+      setSnackbar({
+        open: true,
+        message: "Please resolve email validation issues before registering.",
+        severity: "error",
+      });
+      return;
+    }
+
     try {
-      const res = await registerUser(data).unwrap();
+      const registrationData = { ...data, role: "intern" };
+      const res = await registerUser(registrationData).unwrap();
       setSnackbar({
         open: true,
         message: "Registration successful! Please log in.",
@@ -90,15 +152,24 @@ const RegisterPage: React.FC = () => {
         message: err.data?.error || "Registration failed",
         severity: "error",
       });
-      
-      // reset();
-      // setAvatarPreview(undefined);
     }
   };
 
   const handleSnackbarClose = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
+
+  const getButtonState = () => {
+    if (registerLoading) return { text: "Registering...", disabled: true };
+    if (internCheckLoading)
+      return { text: "Validating Email...", disabled: true };
+    if (watchedEmail && watchedEmail.includes("@") && !canRegister) {
+      return { text: "Email Invalid", disabled: true };
+    }
+    return { text: "Register", disabled: false };
+  };
+
+  const buttonState = getButtonState();
 
   return (
     <Box
@@ -127,7 +198,7 @@ const RegisterPage: React.FC = () => {
           fontWeight={700}
           color="primary"
         >
-          Create Account
+          Create Intern Account
         </Typography>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -163,13 +234,29 @@ const RegisterPage: React.FC = () => {
             multiline
             minRows={2}
           />
-          <TextField
-            label="Email"
-            {...register("email")}
-            error={!!errors.email}
-            helperText={errors.email?.message}
-            fullWidth
-          />
+          <Box>
+            <TextField
+              label="Email"
+              {...register("email")}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+              fullWidth
+            />
+            {emailValidationMessage && (
+              <Alert
+                severity={
+                  canRegister
+                    ? "success"
+                    : internCheckLoading
+                    ? "info"
+                    : "error"
+                }
+                sx={{ mt: 1, fontSize: "0.875rem" }}
+              >
+                {emailValidationMessage}
+              </Alert>
+            )}
+          </Box>
           <TextField
             label="Password"
             type="password"
@@ -194,9 +281,9 @@ const RegisterPage: React.FC = () => {
             type="submit"
             variant="contained"
             color="primary"
-            disabled={registerLoading}
+            disabled={buttonState.disabled}
           >
-            {registerLoading ? "Registering..." : "Register"}
+            {buttonState.text}
           </Button>
         </form>
         <CustomSnackbar

@@ -451,7 +451,6 @@ export default function ProjectsPage() {
                     selectedInterns={selectedInterns}
                     handleInternsChange={handleInternsChange}
                     handleAssign={handleAssign}
-                    // Unassign logic removed; only assignment is allowed from ProjectsPage
                     currentStatus={currentStatus}
                     historyOpen={historyOpen}
                     selectedProjectId={selectedProjectId}
