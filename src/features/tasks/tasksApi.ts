@@ -11,6 +11,10 @@ export const tasksApi = createApi({
       query: ({ internId }) => `/interns/${internId}/tasks`,
       providesTags: ["tasks"],
     }),
+    getMyTasks: builder.query<Task[], void>({
+      query: () => `/tasks/my`, // or your backend route for "my tasks"
+      providesTags: ["tasks"],
+    }),
 
     createTask: builder.mutation<
       Task,
@@ -56,6 +60,7 @@ export const tasksApi = createApi({
 
 export const {
   useGetTasksByInternQuery,
+  useGetMyTasksQuery,
   useCreateTaskMutation,
   useUpdateTaskStatusMutation,
   useGetAllTasksWithInternsQuery,

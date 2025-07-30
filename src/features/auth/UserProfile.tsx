@@ -152,6 +152,15 @@ export default function Profile() {
           maxWidth={360}
         >
           <Stack spacing={2} alignItems="center">
+            <Typography
+              variant="subtitle1"
+              color="primary"
+              sx={{ fontWeight: 600 }}
+            >
+              Role:{" "}
+              {profile?.role?.charAt(0).toUpperCase() +
+                profile?.role?.slice(1) || "N/A"}
+            </Typography>
             <TextField
               label="Email"
               value={profile?.email || ""}
