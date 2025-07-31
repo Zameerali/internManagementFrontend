@@ -1,21 +1,37 @@
 import { Navigate } from "react-router-dom";
 import { useCheckAuthQuery } from "../features/auth/authApi";
+import { CircularProgress, Box } from "@mui/material";
+import { memo } from "react";
 
-export default function PublicRoute({ children } : { children: React.ReactNode }) {
-  const { data, isLoading, isError, error } = useCheckAuthQuery(undefined, {
+interface PublicRouteProps {
+  children: React.ReactNode;
+}
+
+const PublicRoute = memo(function PublicRoute({ children }: PublicRouteProps) {
+  const { data, isLoading, isError } = useCheckAuthQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
-  console.log("PublicRoute state:", { isLoading, isError, data, error });
-
   if (isLoading) {
-    return <div>Loading authentication state...</div>; // Customize (e.g., <CircularProgress />)
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "200px",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (isError || (data && !data.isAuthenticated)) {
-    return children; // Render LoginPage or RegisterPage
+    return <>{children}</>;
   }
 
-  console.log("PublicRoute: User is authenticated, redirecting to /");
   return <Navigate to="/" replace />;
-}
+});
+
+export default PublicRoute;

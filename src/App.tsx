@@ -18,17 +18,18 @@ import { hideSnackbar } from "./features/auth/authSlice";
 import Profile from "./features/auth/UserProfile";
 import InternTaskPage from "./features/tasks/InternTaskPage";
 import { useCheckAuthQuery } from "./features/auth/authApi";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Box } from "@mui/material";
+import { memo, useCallback } from "react";
 
-const GlobalSnackbar: React.FC = () => {
+const GlobalSnackbar = memo(() => {
   const dispatch = useDispatch();
   const { open, message, severity } = useSelector(
     (state: RootState) => state.auth.snackbar
   );
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     dispatch(hideSnackbar());
-  };
+  }, [dispatch]);
 
   return (
     <CustomSnackbar
@@ -39,23 +40,36 @@ const GlobalSnackbar: React.FC = () => {
       autoHideDuration={6000}
     />
   );
-};
+});
 
-function RoleRedirect() {
+GlobalSnackbar.displayName = "GlobalSnackbar";
+
+const RoleRedirect = memo(() => {
   const { data, isLoading } = useCheckAuthQuery();
 
   if (isLoading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 40 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          mt: 5,
+        }}
+      >
         <CircularProgress />
-      </div>
+      </Box>
     );
   }
 
   if (data?.role === "admin") return <Navigate to="/" replace />;
   if (data?.role === "intern") return <Navigate to="/intern/tasks" replace />;
   return <Navigate to="/login" replace />;
-}
+});
+
+RoleRedirect.displayName = "RoleRedirect";
+
+const ADMIN_ROLES = ["admin"];
+const INTERN_ROLES = ["intern"];
 
 const App: React.FC = () => {
   return (
@@ -82,7 +96,7 @@ const App: React.FC = () => {
           <Route
             path="/"
             element={
-              <PrivateRoute allowedRoles={["admin"]}>
+              <PrivateRoute allowedRoles={ADMIN_ROLES}>
                 <DashboardLayout />
               </PrivateRoute>
             }
@@ -97,7 +111,7 @@ const App: React.FC = () => {
           <Route
             path="/intern/*"
             element={
-              <PrivateRoute allowedRoles={["intern"]}>
+              <PrivateRoute allowedRoles={INTERN_ROLES}>
                 <InternDashboardLayout />
               </PrivateRoute>
             }
@@ -108,7 +122,7 @@ const App: React.FC = () => {
           </Route>
 
           <Route
-            path="/"
+            path="/fallback"
             element={
               <PrivateRoute>
                 <RoleRedirect />

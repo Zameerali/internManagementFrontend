@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { TextField, Box, Button } from "@mui/material";
+import { TextField, Box, Button, Typography } from "@mui/material";
+import type { AlertColor } from "@mui/material/Alert";
 import { useLoginMutation } from "./authApi";
 import { setAuthenticated } from "./authSlice";
 import CustomSnackbar from "../../components/Snackbar";
@@ -31,12 +32,13 @@ const LoginPage: React.FC = () => {
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
-    severity: "success" | "error" | "warning" | "info";
+    severity: AlertColor;
   }>({
     open: false,
     message: "",
     severity: "info",
   });
+
   const {
     register,
     handleSubmit,
@@ -50,37 +52,37 @@ const LoginPage: React.FC = () => {
     },
   });
 
-  const handleLogin = async (data: LoginFormData) => {
-    console.log("handleLogin called with data:", data);
-    setSnackbar({ open: false, message: "", severity: "info" });
-    try {
-      const res = await login(data).unwrap();
-      console.log("Login response:", res);
-      dispatch(setAuthenticated());
-      setSnackbar({
-        open: true,
-        message: "Login successful!",
-        severity: "success",
-      });
-      setTimeout(() => {
-        console.log("Navigating to /");
-        navigate("/", { replace: true });
-      }, 1000);
-    } catch (err: any) {
-      console.error("Login error:", err);
-      setSnackbar({
-        open: true,
-        message: err.data?.error || "Login failed",
-        severity: "error",
-      });
-      reset();
-    }
-  };
+  const navigateToHome = useCallback(() => {
+    navigate("/", { replace: true });
+  }, [navigate]);
 
-  const handleSnackbarClose = () => {
-    console.log("Closing Snackbar");
+  const handleLogin = useCallback(
+    async (data: LoginFormData) => {
+      setSnackbar({ open: false, message: "", severity: "info" });
+      try {
+        const res = await login(data).unwrap();
+        dispatch(setAuthenticated());
+        setSnackbar({
+          open: true,
+          message: "Login successful!",
+          severity: "success",
+        });
+        setTimeout(navigateToHome, 1000);
+      } catch (err: any) {
+        setSnackbar({
+          open: true,
+          message: err.data?.error || "Login failed",
+          severity: "error",
+        });
+        reset();
+      }
+    },
+    [login, dispatch, reset, navigateToHome]
+  );
+
+  const handleSnackbarClose = useCallback(() => {
     setSnackbar((prev) => ({ ...prev, open: false }));
-  };
+  }, []);
 
   return (
     <Box
@@ -102,7 +104,9 @@ const LoginPage: React.FC = () => {
           width: "100%",
         }}
       >
-        <h2
+        <Typography
+          variant="h4"
+          component="h2"
           style={{
             marginBottom: 28,
             textAlign: "center",
@@ -113,8 +117,9 @@ const LoginPage: React.FC = () => {
           }}
         >
           Sign In
-        </h2>
-        <form
+        </Typography>
+        <Box
+          component="form"
           onSubmit={handleSubmit(handleLogin)}
           style={{ display: "flex", flexDirection: "column", gap: 18 }}
         >
@@ -142,7 +147,7 @@ const LoginPage: React.FC = () => {
           >
             {loginLoading ? "Logging in..." : "Login"}
           </Button>
-        </form>
+        </Box>
         <CustomSnackbar
           open={snackbar.open}
           onClose={handleSnackbarClose}

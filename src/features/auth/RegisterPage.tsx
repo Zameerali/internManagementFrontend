@@ -59,6 +59,7 @@ const RegisterPage: React.FC = () => {
   const [emailValidationMessage, setEmailValidationMessage] =
     useState<string>("");
   const [canRegister, setCanRegister] = useState<boolean>(true);
+  const [emailToCheck, setEmailToCheck] = useState<string>(""); 
 
   const {
     register,
@@ -73,18 +74,28 @@ const RegisterPage: React.FC = () => {
     resolver: yupResolver(schema),
   });
 
-  const watchedEmail = watch("email");
-
+  // NEW: Only check email when emailToCheck is set
   const { data: internCheck, isLoading: internCheckLoading } =
     useCheckInternEmailExistsQuery(
-      { email: watchedEmail },
+      { email: emailToCheck },
       {
-        skip: !watchedEmail || !watchedEmail.includes("@"),
+        skip: !emailToCheck || !emailToCheck.includes("@"),
       }
     );
 
+  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    if (email && email.includes("@")) {
+      setEmailToCheck(email); 
+    } else {
+      setEmailValidationMessage("");
+      setCanRegister(true);
+      setEmailToCheck(""); 
+    }
+  };
+
   React.useEffect(() => {
-    if (watchedEmail && watchedEmail.includes("@")) {
+    if (emailToCheck && emailToCheck.includes("@")) {
       if (internCheckLoading) {
         setEmailValidationMessage("Checking email...");
         setCanRegister(false);
@@ -106,11 +117,8 @@ const RegisterPage: React.FC = () => {
           setCanRegister(true);
         }
       }
-    } else {
-      setEmailValidationMessage("");
-      setCanRegister(true); 
     }
-  }, [internCheck, watchedEmail, internCheckLoading]);
+  }, [internCheck, emailToCheck, internCheckLoading]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -126,11 +134,21 @@ const RegisterPage: React.FC = () => {
   const onSubmit = async (data: RegisterFormData) => {
     setSnackbar({ open: false, message: "", severity: "info" });
 
-    if (watchedEmail && watchedEmail.includes("@") && !canRegister) {
+    if (emailToCheck && !canRegister) {
       setSnackbar({
         open: true,
         message: "Please resolve email validation issues before registering.",
         severity: "error",
+      });
+      return;
+    }
+
+    if (data.email && data.email.includes("@") && !emailToCheck) {
+      setSnackbar({
+        open: true,
+        message:
+          "Please click outside the email field to validate your email first.",
+        severity: "warning",
       });
       return;
     }
@@ -163,7 +181,7 @@ const RegisterPage: React.FC = () => {
     if (registerLoading) return { text: "Registering...", disabled: true };
     if (internCheckLoading)
       return { text: "Validating Email...", disabled: true };
-    if (watchedEmail && watchedEmail.includes("@") && !canRegister) {
+    if (emailToCheck && !canRegister) {
       return { text: "Email Invalid", disabled: true };
     }
     return { text: "Register", disabled: false };
@@ -238,6 +256,7 @@ const RegisterPage: React.FC = () => {
             <TextField
               label="Email"
               {...register("email")}
+              onBlur={handleEmailBlur} 
               error={!!errors.email}
               helperText={errors.email?.message}
               fullWidth

@@ -1,30 +1,37 @@
 import { Navigate } from "react-router-dom";
 import { useCheckAuthQuery } from "../features/auth/authApi";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Box } from "@mui/material";
+import { memo } from "react";
 
-export default function PrivateRoute({
-  children,
-  allowedRoles,
-}: {
+interface PrivateRouteProps {
   children: React.ReactNode;
   allowedRoles?: string[];
-}) {
-  const { data, isLoading, isError, error } = useCheckAuthQuery(undefined, {
+}
+
+const PrivateRoute = memo(function PrivateRoute({
+  children,
+  allowedRoles,
+}: PrivateRouteProps) {
+  const { data, isLoading, isError } = useCheckAuthQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
-  console.log("PrivateRoute state:", { isLoading, isError, data, error });
-
   if (isLoading) {
     return (
-      <div>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "200px",
+        }}
+      >
         <CircularProgress />
-      </div>
+      </Box>
     );
   }
 
   if (isError || !data?.isAuthenticated) {
-    console.error("PrivateRoute auth error:", error);
     return <Navigate to="/login" replace />;
   }
 
@@ -34,5 +41,7 @@ export default function PrivateRoute({
     return <Navigate to="/login" replace />;
   }
 
-  return children;
-}
+  return <>{children}</>;
+});
+
+export default PrivateRoute;
